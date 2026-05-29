@@ -271,7 +271,8 @@ function renderStats() {
     : null;
 
   const activeMembers = state.members.length || 1;
-  const managerAssignments = courses.reduce((sum, c) => {
+  const activeWorkCourses = courses.filter((c) => ["ready", "running"].includes(c.status));
+  const managerAssignments = activeWorkCourses.reduce((sum, c) => {
     return sum + [
       c.business_manager_id,
       c.main_manager_id,
@@ -572,16 +573,14 @@ function renderRR() {
         course.main_manager_id,
         course.sub_manager1_id,
         course.sub_manager2_id,
-        ...(course.support_manager_ids || [])
+        ...(course.support_manager_ids || []),
       ].filter(Boolean);
 
       return managerIds.includes(member.id);
     });
 
     // 업무량 판단 및 기본 노출 목록은 준비중/운영중만 포함
-    const assigned = assignedAll.filter((course) =>
-      activeWorkStatuses.includes(course.status)
-    );
+    const assigned = assignedAll.filter((course) => activeWorkStatuses.includes(course.status));
 
     const businessCourses = assigned.filter((course) => course.business_manager_id === member.id);
     const pmCourses = assigned.filter((course) => course.main_manager_id === member.id);
@@ -670,15 +669,7 @@ function renderRR() {
   container.innerHTML = html;
 }
 
-function renderLogs() {
-  const container = document.getElementById("logsView");
-
-  if (!state.logs.length) {
-    container.innerHTML = emptyBox("최근 이력이 없습니다.");
-    return;
-  }
-
-  function renderRRProjectItem(course, memberId) {
+function renderRRProjectItem(course, memberId) {
   const role = getRoleLabel(course, memberId);
   const period = makeDateLabel(course.start_date_ymd, course.end_date_ymd)
     || makeMonthRangeLabel(course)
@@ -715,7 +706,15 @@ window.toggleRRMore = function(areaId, button) {
     button.textContent = `+${hiddenCount}개 더보기`;
   }
 };
-  
+
+function renderLogs() {
+  const container = document.getElementById("logsView");
+
+  if (!state.logs.length) {
+    container.innerHTML = emptyBox("최근 이력이 없습니다.");
+    return;
+  }
+
   container.innerHTML = `
     <div class="course-card">
       <h3 class="font-black text-[#0f2742] mb-4">최근 수정이력 30개</h3>
@@ -1770,31 +1769,33 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
 
   const items = getChecklistItemsByScope(scope, courseId, roundId);
 
-  const rows = items.map((item) => {
-    const status = state.checklistStatuses.find(
-      (s) =>
-        s.course_id === courseId &&
-        normalizeId(s.round_id) === normalizeId(roundId) &&
-        s.checklist_item_id === item.id
-    );
+  const rows = items
+    .map((item) => {
+      const status = state.checklistStatuses.find(
+        (s) =>
+          s.course_id === courseId &&
+          normalizeId(s.round_id) === normalizeId(roundId) &&
+          s.checklist_item_id === item.id
+      );
 
-    return {
-      item,
-      status,
-      isDone: !!status?.is_done,
-      isHidden: !!status?.is_hidden,
-      checkedAt: status?.is_done ? status?.updated_at : null,
-    };
-})
-.filter((row) => !row.isHidden)
-.sort((a, b) => {
-  const orderA = Number(a.status?.sort_order ?? a.item.sort_order ?? 9999);
-  const orderB = Number(b.status?.sort_order ?? b.item.sort_order ?? 9999);
+      return {
+        item,
+        status,
+        isDone: !!status?.is_done,
+        isHidden: !!status?.is_hidden,
+        checkedAt: status?.is_done ? status?.updated_at : null,
+      };
+    })
+    .filter((row) => !row.isHidden)
+    .sort((a, b) => {
+      const orderA = Number(a.status?.sort_order ?? a.item.sort_order ?? 9999);
+      const orderB = Number(b.status?.sort_order ?? b.item.sort_order ?? 9999);
 
-  if (orderA !== orderB) return orderA - orderB;
+      if (orderA !== orderB) return orderA - orderB;
 
-  return String(a.item.title || "").localeCompare(String(b.item.title || ""));
-});
+      return String(a.item.title || "").localeCompare(String(b.item.title || ""));
+    });
+
   const totalCount = rows.length;
   const doneCount = rows.filter((row) => row.isDone).length;
   const percent = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
@@ -1838,7 +1839,7 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
       <div class="checklist-list">
         ${
           rows.length
-            ? rows.map(({ item, isDone, checkedAt }) => `
+            ? rows.map(({ item, isDone, checkedAt }, index) => `
               <label class="checklist-card ${isDone ? "is-done" : ""}">
                 <input
                   type="checkbox"
@@ -1850,7 +1851,9 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
                   <i class="fa-solid fa-check"></i>
                 </span>
 
-              
+                <span class="checklist-number">${index + 1}</span>
+
+                <span class="checklist-content">
                   <span class="checklist-name">${escapeHtml(item.title)}</span>
                   ${
                     checkedAt
@@ -1904,6 +1907,7 @@ window.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, c
           checklist_item_id: itemId,
           is_done: checked,
           is_hidden: false,
+          sort_order: getNextChecklistSortOrder(courseId, roundId),
           updated_by: nullIfEmpty(state.currentUserId),
         })
         .select()
@@ -2014,16 +2018,17 @@ function renderChecklistEditList(courseId, roundId = null, scope = "course", con
     return;
   }
 
-  container.innerHTML = rows.map(({ item, status, isHidden }, index) => `
+  container.innerHTML = rows.map(({ item, isHidden }, index) => `
     <div class="checklist-edit-row ${isHidden ? "is-hidden" : ""}">
       <div>
         <div class="checklist-edit-title">
+          <span class="checklist-edit-number">${index + 1}</span>
           ${escapeHtml(item.title)}
           ${item.is_custom ? `<span class="custom-mark">직접추가</span>` : `<span class="default-mark">기본</span>`}
         </div>
-<div class="checklist-edit-meta">
-  ${isHidden ? "숨김 처리됨" : "표시 중"}
-</div>
+        <div class="checklist-edit-meta">
+          ${isHidden ? "숨김 처리됨" : "표시 중"}
+        </div>
       </div>
 
       <div class="checklist-edit-actions">
@@ -2060,26 +2065,27 @@ window.moveChecklistItem = async function(courseId, roundIdRaw, itemId, directio
 
     const items = getChecklistItemsByScope(scope, courseId, roundId);
 
-    const rows = items.map((item) => {
-      const status = state.checklistStatuses.find(
-        (s) =>
-          s.course_id === courseId &&
-          normalizeId(s.round_id) === normalizeId(roundId) &&
-          s.checklist_item_id === item.id
-      );
+    const rows = items
+      .map((item) => {
+        const status = state.checklistStatuses.find(
+          (s) =>
+            s.course_id === courseId &&
+            normalizeId(s.round_id) === normalizeId(roundId) &&
+            s.checklist_item_id === item.id
+        );
 
-      return {
-        item,
-        status,
-        isHidden: !!status?.is_hidden,
-        sortOrder: Number(status?.sort_order ?? item.sort_order ?? 9999),
-      };
-    })
-    .filter((row) => !row.isHidden && row.status)
-    .sort((a, b) => {
-      if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
-      return String(a.item.title || "").localeCompare(String(b.item.title || ""));
-    });
+        return {
+          item,
+          status,
+          isHidden: !!status?.is_hidden,
+          sortOrder: Number(status?.sort_order ?? item.sort_order ?? 9999),
+        };
+      })
+      .filter((row) => !row.isHidden && row.status)
+      .sort((a, b) => {
+        if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+        return String(a.item.title || "").localeCompare(String(b.item.title || ""));
+      });
 
     const currentIndex = rows.findIndex((row) => row.item.id === itemId);
     if (currentIndex < 0) return;
@@ -2116,12 +2122,11 @@ window.moveChecklistItem = async function(courseId, roundIdRaw, itemId, directio
 
     renderChecklistEditList(courseId, roundId, scope, targetContainerId);
     renderChecklist(courseId, roundId, targetContainerId, scope);
-
   } catch (error) {
     console.error(error);
     alert("체크리스트 순서 변경 중 오류가 발생했습니다.\n\n" + error.message);
   }
-};
+};;
 
 async function addCustomChecklistItem() {
   const courseId = document.getElementById("checklistEditCourseId").value;
@@ -2142,7 +2147,7 @@ async function addCustomChecklistItem() {
       is_custom: true,
       course_id: courseId,
       round_id: scope === "round" ? roundId : null,
-      sort_order: 999,
+      sort_order: getNextChecklistSortOrder(courseId, scope === "round" ? roundId : null),
       is_active: true,
     };
 
