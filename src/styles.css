@@ -2001,3 +2001,174 @@ body {
     font-size: 11px;
   }
 }
+
+/* =========================================================
+   STEP 3 추가 스타일
+   - 완료 컬럼 내부 스크롤 안내
+   - 차수별 장소/현장운영자 표시
+   - R&R 완료 이력 접기/스크롤
+   - 체크리스트 수정창 번호
+   ========================================================= */
+
+.kanban-column-note {
+  margin: -6px 0 12px;
+  padding: 7px 9px;
+  border: 1px dashed #bbf7d0;
+  border-radius: 10px;
+  background: rgba(240, 253, 244, 0.8);
+  color: #15803d;
+  font-size: 11px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.kanban-completed .kanban-body-v2 {
+  max-height: 680px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.kanban-completed .kanban-body-v2::-webkit-scrollbar,
+.rr-history-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.kanban-completed .kanban-body-v2::-webkit-scrollbar-thumb,
+.rr-history-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.kanban-completed .kanban-body-v2::-webkit-scrollbar-track,
+.rr-history-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 999px;
+}
+
+.round-preview-item-with-field {
+  align-items: flex-start;
+}
+
+.round-preview-item-with-field .round-preview-name {
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.round-preview-venue,
+.round-preview-field {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+.round-preview-field {
+  color: #c2410c;
+}
+
+.round-field-manager-block {
+  grid-column: 1 / -1;
+}
+
+.round-field-tag {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.rr-history-box {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.rr-history-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.rr-history-title span {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 900;
+}
+
+.rr-history-toggle {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rr-history-toggle:hover {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.rr-history-list {
+  margin-top: 8px;
+  max-height: 230px;
+  overflow-y: auto;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.rr-history-list.hidden {
+  display: none;
+}
+
+.rr-empty-small {
+  padding: 12px 8px;
+  font-size: 12px;
+}
+
+.checklist-edit-row {
+  grid-template-columns: 28px 1fr auto;
+}
+
+.checklist-edit-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checklist-edit-row.is-hidden .checklist-edit-number {
+  background: #e2e8f0;
+  color: #94a3b8;
+}
+
+@media (max-width: 720px) {
+  .checklist-edit-row {
+    grid-template-columns: 28px 1fr;
+  }
+
+  .checklist-edit-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .kanban-completed .kanban-body-v2 {
+    max-height: 520px;
+  }
+}
