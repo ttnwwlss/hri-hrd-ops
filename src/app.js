@@ -371,6 +371,7 @@ function renderTimeline() {
             <i class="fa-solid fa-chevron-down"></i>
           </button>
         </div>
+
         <div class="timeline-drag-handle" title="드래그해서 순서 변경">
           <i class="fa-solid fa-grip-vertical"></i>
         </div>
@@ -406,7 +407,7 @@ function renderTimeline() {
   container.innerHTML = html;
 }
 
-function renderKanban() {
+function renderKanbanfunction renderKanban() {
   const container = document.getElementById("kanbanView");
   const courses = getFilteredCourses();
 
@@ -567,7 +568,6 @@ function renderRR() {
       (course.support_manager_ids || []).includes(member.id)
     );
 
-    const resultStats = getMemberResultStats(member.id, courses);
     const loadStatus = getLoadStatus(assigned.length);
 
     html += `
@@ -586,24 +586,21 @@ function renderRR() {
         <div class="rr-divider"></div>
 
         <div class="rr-summary rr-summary-4">
-          <div><b>${businessCourses.length}</b><span>사업</span></div>
-          <div><b>${pmCourses.length}</b><span>PM</span></div>
-          <div><b>${assistCourses.length}</b><span>보조</span></div>
-          <div><b>${fieldCourses.length}</b><span>현장</span></div>
-        </div>
-
-        <div class="rr-result-summary">
           <div>
-            <b>${formatNumber(resultStats.totalHours)}</b>
-            <span>교육시간 합계</span>
+            <b>${businessCourses.length}</b>
+            <span>사업</span>
           </div>
           <div>
-            <b>${formatNumber(resultStats.totalParticipants)}</b>
-            <span>교육인원 합계</span>
+            <b>${pmCourses.length}</b>
+            <span>PM</span>
           </div>
           <div>
-            <b>${resultStats.avgSatisfaction === null ? "-" : resultStats.avgSatisfaction.toFixed(2)}</b>
-            <span>교육만족도 평균</span>
+            <b>${assistCourses.length}</b>
+            <span>보조</span>
+          </div>
+          <div>
+            <b>${fieldCourses.length}</b>
+            <span>현장</span>
           </div>
         </div>
 
@@ -1623,8 +1620,6 @@ window.openCompleteModal = function(roundId) {
 
   document.getElementById("completeParticipantCount").value = round.participant_count || "";
   document.getElementById("completeSatisfaction").value = round.satisfaction || "";
-  document.getElementById("completeInstructorSatisfaction").value = round.instructor_satisfaction || "";
-  document.getElementById("completeOperationSatisfaction").value = round.operation_satisfaction || "";
   document.getElementById("completeOperationHours").value = round.operation_hours || "";
   document.getElementById("completeRemarks").value = round.remarks || "";
 
@@ -1643,8 +1638,6 @@ async function submitCompleteRound(event) {
       status: "completed",
       participant_count: toNumberOrNull(document.getElementById("completeParticipantCount").value),
       satisfaction: toNumberOrNull(document.getElementById("completeSatisfaction").value),
-      instructor_satisfaction: toNumberOrNull(document.getElementById("completeInstructorSatisfaction").value),
-      operation_satisfaction: toNumberOrNull(document.getElementById("completeOperationSatisfaction").value),
       operation_hours: toNumberOrNull(document.getElementById("completeOperationHours").value),
       remarks: document.getElementById("completeRemarks").value.trim() || null,
       completed_at: new Date().toISOString(),
@@ -1806,7 +1799,7 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
   `;
 }
 
-globalThis.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, containerId, scope) {
+window.toggleChecklistwindow.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, containerId, scope) {
   const roundId = roundIdRaw || null;
 
   try {
@@ -1893,7 +1886,7 @@ function getChecklistItemsByScope(scope, courseId = null, roundId = null) {
 // ---------------------------------------------------------
 // 체크리스트 항목 편집
 // ---------------------------------------------------------
-globalThis.openChecklistEditModal = async function(courseId, roundIdRaw, scope, containerId) {
+window.openChecklistEditModal = async function(courseId, roundIdRaw, scope, containerId) {
   const roundId = roundIdRaw || null;
 
   try {
@@ -2025,7 +2018,7 @@ async function addCustomChecklistItem() {
   }
 }
 
-globalThis.hideChecklistItem = async function(courseId, roundIdRaw, itemId, scope, containerId) {
+window.hideChecklistItem = async function(courseId, roundIdRaw, itemId, scope, containerId) {
   const roundId = roundIdRaw || null;
 
   if (!confirm("이 항목을 현재 프로젝트/차수에서 삭제할까요?\n기본 항목은 다른 프로젝트에는 영향을 주지 않고 현재 화면에서만 숨김 처리됩니다.")) {
@@ -2073,8 +2066,8 @@ globalThis.hideChecklistItem = async function(courseId, roundIdRaw, itemId, scop
 
     await insertLog({
       target_type: "체크리스트",
-      course_id: courseId,
-      round_id: roundId,
+      course_id,
+      round_id,
       action_type: "숨김처리",
       change_summary: `체크리스트 항목 삭제/숨김 처리`,
     });
@@ -2087,7 +2080,7 @@ globalThis.hideChecklistItem = async function(courseId, roundIdRaw, itemId, scop
   }
 };
 
-globalThis.restoreChecklistItem = async function(courseId, roundIdRaw, itemId, scope, containerId) {
+window.restoreChecklistItem = async function(courseId, roundIdRaw, itemId, scope, containerId) {
   const roundId = roundIdRaw || null;
 
   try {
@@ -2111,8 +2104,8 @@ globalThis.restoreChecklistItem = async function(courseId, roundIdRaw, itemId, s
 
     await insertLog({
       target_type: "체크리스트",
-      course_id: courseId,
-      round_id: roundId,
+      course_id,
+      round_id,
       action_type: "복원",
       change_summary: `체크리스트 항목 복원`,
     });
@@ -2590,16 +2583,6 @@ function formatDateTime(value) {
   return d.toLocaleString("ko-KR");
 }
 
-function formatTinyDate(value) {
-  if (!value) return "";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "";
-  const yy = String(d.getFullYear()).slice(2);
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yy}.${mm}.${dd}`;
-}
-
 function nullIfEmpty(value) {
   return value ? value : null;
 }
@@ -2699,62 +2682,6 @@ function makeCustomChecklistCode(scope) {
   const stamp = Date.now().toString(36).toUpperCase();
   const random = Math.random().toString(36).slice(2, 7).toUpperCase();
   return `${prefix}-${stamp}-${random}`;
-}
-
-function getMemberResultStats(memberId, courses) {
-  const assignedCourseIds = courses
-    .filter((course) => [
-      course.business_manager_id,
-      course.main_manager_id,
-      course.sub_manager1_id,
-      course.sub_manager2_id,
-      ...(course.support_manager_ids || [])
-    ].filter(Boolean).includes(memberId))
-    .map((course) => course.id);
-
-  const assignedRounds = state.rounds.filter((round) => assignedCourseIds.includes(round.course_id));
-
-  const totalHoursFromRounds = assignedRounds.reduce((sum, round) => {
-    return sum + (Number(round.operation_hours) || 0);
-  }, 0);
-
-  const totalParticipantsFromRounds = assignedRounds.reduce((sum, round) => {
-    return sum + (Number(round.participant_count) || 0);
-  }, 0);
-
-  const courseOnlyRows = courses.filter((course) => {
-    return assignedCourseIds.includes(course.id) && Number(course.final_participant_count || 0) > 0;
-  });
-
-  const totalHoursFromCourses = courseOnlyRows.reduce((sum, course) => {
-    return sum + (Number(course.final_operation_hours) || 0);
-  }, 0);
-
-  const totalParticipantsFromCourses = courseOnlyRows.reduce((sum, course) => {
-    return sum + (Number(course.final_participant_count) || 0);
-  }, 0);
-
-  const satisfactionValues = [
-    ...assignedRounds
-      .filter((round) => round.satisfaction !== null && round.satisfaction !== undefined)
-      .map((round) => Number(round.satisfaction)),
-    ...courseOnlyRows
-      .filter((course) => course.final_overall_satisfaction !== null && course.final_overall_satisfaction !== undefined)
-      .map((course) => Number(course.final_overall_satisfaction)),
-  ].filter((value) => !Number.isNaN(value));
-
-  return {
-    totalHours: totalHoursFromRounds + totalHoursFromCourses,
-    totalParticipants: totalParticipantsFromRounds + totalParticipantsFromCourses,
-    avgSatisfaction: satisfactionValues.length
-      ? satisfactionValues.reduce((sum, value) => sum + value, 0) / satisfactionValues.length
-      : null,
-  };
-}
-
-function formatNumber(value) {
-  const number = Number(value) || 0;
-  return Number.isInteger(number) ? number.toLocaleString() : number.toFixed(1);
 }
 
 function csvEscape(value) {
