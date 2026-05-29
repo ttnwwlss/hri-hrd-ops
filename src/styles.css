@@ -488,7 +488,23 @@ body {
   font-size: 12px;
   color: #64748b;
 }
+.rr-more-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
 
+.rr-more-btn:hover {
+  background: #eef2ff;
+  color: #1e3a8a;
+}
 /* =========================================================
    단계별 보드 / 담당자별 R&R
    ========================================================= */
@@ -2252,4 +2268,23 @@ body {
   .rr-result-summary {
     grid-template-columns: 1fr;
   }
+}
+
+
+.rr-more-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rr-more-btn:hover {
+  background: #eef2ff;
+  color: #1e3a8a;
 }
