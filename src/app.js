@@ -407,7 +407,7 @@ function renderTimeline() {
   container.innerHTML = html;
 }
 
-function renderKanbanfunction renderKanban() {
+function renderKanban {
   const container = document.getElementById("kanbanView");
   const courses = getFilteredCourses();
 
