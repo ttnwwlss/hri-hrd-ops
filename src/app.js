@@ -317,7 +317,7 @@ function getFilteredCourses() {
 
 function renderTimeline() {
   const container = document.getElementById("timelineView");
-  const courses = getFilteredCourses();
+  const courses = getTimelineSortedCourses();
 
   if (!courses.length) {
     container.innerHTML = emptyBox("표시할 과정이 없습니다.");
@@ -326,28 +326,71 @@ function renderTimeline() {
 
   let html = `
     <div class="timeline-wrapper">
-      <div class="timeline-grid mb-3">
+      <div class="timeline-guide">
+        <div>
+          <b>연간 타임라인</b>
+          <span>프로젝트 블록을 드래그하거나 ↑↓ 버튼으로 순서를 조정할 수 있습니다.</span>
+        </div>
+        <button type="button" class="btn-secondary" onclick="saveTimelineOrder()">
+          <i class="fa-solid fa-floppy-disk"></i>
+          순서 저장
+        </button>
+      </div>
+
+      <div class="timeline-grid mb-3 timeline-header-grid">
         <div></div>
         ${Array.from({ length: 12 }, (_, i) => `<button type="button" class="timeline-month timeline-month-btn" onclick="openWeeklyLayer(${i + 1})">${i + 1}월</button>`).join("")}
       </div>
-      <div class="space-y-3">
+
+      <div id="timelineRows" class="space-y-3">
   `;
 
-  courses.forEach((course) => {
+  courses.forEach((course, index) => {
     const start = getCourseStartMonth(course) || 1;
     const end = getCourseEndMonth(course) || start;
 
-    html += `<div class="timeline-grid cursor-pointer" onclick="openCourseModalById('${course.id}')">`;
     html += `
-      <div class="timeline-name">
-        ${escapeHtml(course.course_name)}
-        <div class="small-muted">${escapeHtml(course.client_name || "")} · ${statusText(course.status)}</div>
+      <div
+        class="timeline-grid timeline-row-block"
+        draggable="true"
+        data-course-id="${course.id}"
+        ondragstart="handleTimelineDragStart(event, '${course.id}')"
+        ondragover="handleTimelineDragOver(event)"
+        ondrop="handleTimelineDrop(event, '${course.id}')"
+        ondragend="handleTimelineDragEnd(event)"
+      >
+    `;
+
+    html += `
+      <div class="timeline-name timeline-name-block">
+        <div class="timeline-row-actions" onclick="event.stopPropagation()">
+          <button type="button" title="위로 이동" onclick="moveTimelineCourse('${course.id}', -1)">
+            <i class="fa-solid fa-chevron-up"></i>
+          </button>
+          <button type="button" title="아래로 이동" onclick="moveTimelineCourse('${course.id}', 1)">
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+        </div>
+
+        <div class="timeline-drag-handle" title="드래그해서 순서 변경">
+          <i class="fa-solid fa-grip-vertical"></i>
+        </div>
+
+        <div class="timeline-title-area" onclick="openCourseModalById('${course.id}')">
+          <div class="timeline-title-main">${escapeHtml(course.course_name)}</div>
+          <div class="small-muted">${escapeHtml(course.client_name || "")} · ${statusText(course.status)}</div>
+        </div>
       </div>
     `;
 
     for (let month = 1; month <= 12; month++) {
       const active = month >= start && month <= end;
-      html += `<div class="timeline-cell ${active ? "active" : ""}"></div>`;
+      html += `
+        <div
+          class="timeline-cell ${active ? "active" : ""}"
+          onclick="openCourseModalById('${course.id}')"
+        ></div>
+      `;
     }
 
     html += `</div>`;
@@ -361,7 +404,7 @@ function renderTimeline() {
   container.innerHTML = html;
 }
 
-function renderKanban() {
+function renderKanbanfunction renderKanban() {
   const container = document.getElementById("kanbanView");
   const courses = getFilteredCourses();
 
@@ -629,6 +672,143 @@ function renderLogs() {
 }
 
 
+
+// ---------------------------------------------------------
+// 연간 타임라인 순서 조정
+// ---------------------------------------------------------
+function getTimelineSortedCourses() {
+  return getFilteredCourses().sort((a, b) => {
+    const orderA = Number.isFinite(Number(a.timeline_order)) ? Number(a.timeline_order) : 999999;
+    const orderB = Number.isFinite(Number(b.timeline_order)) ? Number(b.timeline_order) : 999999;
+
+    if (orderA !== orderB) return orderA - orderB;
+
+    const startA = a.start_date_ymd || "991231";
+    const startB = b.start_date_ymd || "991231";
+
+    if (startA !== startB) return startA.localeCompare(startB);
+
+    return String(a.course_name || "").localeCompare(String(b.course_name || ""));
+  });
+}
+
+window.moveTimelineCourse = function(courseId, direction) {
+  const courses = getTimelineSortedCourses();
+  const currentIndex = courses.findIndex((course) => course.id === courseId);
+
+  if (currentIndex < 0) return;
+
+  const nextIndex = currentIndex + direction;
+  if (nextIndex < 0 || nextIndex >= courses.length) return;
+
+  const reordered = [...courses];
+  const [target] = reordered.splice(currentIndex, 1);
+  reordered.splice(nextIndex, 0, target);
+
+  applyTimelineOrderToState(reordered);
+  renderTimeline();
+};
+
+window.handleTimelineDragStart = function(event, courseId) {
+  state.timelineDragCourseId = courseId;
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", courseId);
+
+  const row = event.currentTarget;
+  row.classList.add("is-dragging");
+};
+
+window.handleTimelineDragOver = function(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+
+  const row = event.currentTarget;
+  document.querySelectorAll(".timeline-row-block.is-drop-target").forEach((el) => {
+    if (el !== row) el.classList.remove("is-drop-target");
+  });
+  row.classList.add("is-drop-target");
+};
+
+window.handleTimelineDrop = function(event, targetCourseId) {
+  event.preventDefault();
+
+  const draggedCourseId = state.timelineDragCourseId || event.dataTransfer.getData("text/plain");
+
+  document.querySelectorAll(".timeline-row-block").forEach((el) => {
+    el.classList.remove("is-dragging", "is-drop-target");
+  });
+
+  if (!draggedCourseId || draggedCourseId === targetCourseId) return;
+
+  const courses = getTimelineSortedCourses();
+  const fromIndex = courses.findIndex((course) => course.id === draggedCourseId);
+  const toIndex = courses.findIndex((course) => course.id === targetCourseId);
+
+  if (fromIndex < 0 || toIndex < 0) return;
+
+  const reordered = [...courses];
+  const [dragged] = reordered.splice(fromIndex, 1);
+  reordered.splice(toIndex, 0, dragged);
+
+  applyTimelineOrderToState(reordered);
+  renderTimeline();
+};
+
+window.handleTimelineDragEnd = function(event) {
+  state.timelineDragCourseId = null;
+  document.querySelectorAll(".timeline-row-block").forEach((el) => {
+    el.classList.remove("is-dragging", "is-drop-target");
+  });
+};
+
+function applyTimelineOrderToState(orderedCourses) {
+  orderedCourses.forEach((course, index) => {
+    const target = state.courses.find((item) => item.id === course.id);
+    if (target) target.timeline_order = index + 1;
+  });
+}
+
+window.saveTimelineOrder = async function() {
+  const courses = getTimelineSortedCourses();
+
+  if (!courses.length) {
+    alert("저장할 프로젝트 순서가 없습니다.");
+    return;
+  }
+
+  try {
+    setSyncStatus("타임라인 순서 저장 중...");
+
+    const updates = courses.map((course, index) => {
+      return db
+        .from("courses")
+        .update({
+          timeline_order: index + 1,
+          updated_by: nullIfEmpty(state.currentUserId),
+        })
+        .eq("id", course.id);
+    });
+
+    const responses = await Promise.all(updates);
+    responses.forEach(throwIfError);
+
+    await insertLog({
+      target_type: "과정",
+      action_type: "수정",
+      change_summary: "연간 타임라인 프로젝트 순서 변경",
+    });
+
+    await loadAll();
+    setSyncStatus(`순서 저장 완료 · ${formatNow()}`);
+    alert("연간 타임라인 순서가 저장되었습니다.");
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("순서 저장 오류");
+    alert("타임라인 순서 저장 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
+
 // ---------------------------------------------------------
 // 월 클릭 주간 프로젝트 레이어
 // ---------------------------------------------------------
@@ -667,7 +847,7 @@ function renderWeeklyLayer() {
   const content = document.getElementById("weeklyLayerContent");
 
   document.getElementById("weeklyLayerTitle").innerHTML =
-    `<i class="fa-solid fa-calendar-week text-amber-400 mr-2"></i>2026년 ${month}월 주간 프로젝트`;
+    `<i class="fa-solid fa-calendar-week text-amber-400 mr-2"></i>2026년 ${month}월 주간 캘린더`;
 
   const weeks = buildMonthWeeks(baseDate, month);
   const events = collectTimelineEventsForMonth(month);
@@ -683,71 +863,147 @@ function renderWeeklyLayer() {
   }
 
   content.innerHTML = `
-    <div class="weekly-summary-row">
+    <div class="weekly-calendar-summary">
       <div>
-        <b>${month}월 전체 일정</b>
-        <span>총 ${events.length}개 프로젝트/차수</span>
+        <b>${month}월 주간 캘린더</b>
+        <span>총 ${events.length}개 프로젝트/차수 · 일요일 시작 기준</span>
       </div>
       <div class="weekly-help">
         차수 일정이 있으면 차수 기준, 차수가 없으면 과정 기간 기준으로 표시됩니다.
       </div>
     </div>
 
-    <div class="weekly-grid">
-      ${weeks.map((week, index) => {
-        const weekEvents = events.filter((event) => rangesOverlap(event.startDate, event.endDate, week.start, week.end));
+    <div class="weekly-calendar-table">
+      <div class="weekly-calendar-head">
+        <div>주차</div>
+        <div>일</div>
+        <div>월</div>
+        <div>화</div>
+        <div>수</div>
+        <div>목</div>
+        <div>금</div>
+        <div>토</div>
+      </div>
 
-        return `
-          <section class="weekly-card">
-            <div class="weekly-card-head">
-              <div>
-                <div class="weekly-title">${index + 1}주차</div>
-                <div class="weekly-range">${formatWeekRange(week.start, week.end)}</div>
+      <div class="weekly-calendar-body">
+        ${weeks.map((week, weekIndex) => {
+          const days = Array.from({ length: 7 }, (_, dayIndex) => addDays(week.start, dayIndex));
+          const weekEvents = events.filter((event) => rangesOverlap(event.startDate, event.endDate, week.start, week.end));
+
+          return `
+            <div class="weekly-calendar-row">
+              <div class="weekly-week-label">
+                <strong>${weekIndex + 1}주차</strong>
+                <span>${formatWeekRange(week.start, week.end)}</span>
+                <em>${weekEvents.length}건</em>
               </div>
-              <span class="weekly-count">${weekEvents.length}</span>
-            </div>
 
-            <div class="weekly-events">
-              ${
-                weekEvents.length
-                  ? weekEvents.map(renderWeeklyEvent).join("")
-                  : `<div class="weekly-no-event">해당 주간 일정 없음</div>`
-              }
+              ${days.map((day) => {
+                const dayEvents = events.filter((event) => rangesOverlap(event.startDate, event.endDate, day, day));
+                const isOtherMonth = day.getMonth() + 1 !== month;
+                const isToday = isSameDate(day, new Date());
+
+                return `
+                  <div class="weekly-day-cell ${isOtherMonth ? "other-month" : ""} ${isToday ? "today" : ""}">
+                    <div class="weekly-day-number">
+                      <span>${day.getDate()}</span>
+                    </div>
+
+                    <div class="weekly-day-events">
+                      ${
+                        dayEvents.length
+                          ? dayEvents.slice(0, 3).map((event) => renderWeeklyEvent(event, day)).join("")
+                          : `<div class="weekly-day-empty">-</div>`
+                      }
+
+                      ${
+                        dayEvents.length > 3
+                          ? `<button type="button" class="weekly-day-more" onclick="openWeeklyDayDetail('${toDateInputValue(day)}')">+${dayEvents.length - 3}개 더보기</button>`
+                          : ""
+                      }
+                    </div>
+                  </div>
+                `;
+              }).join("")}
             </div>
-          </section>
-        `;
-      }).join("")}
+          `;
+        }).join("")}
+      </div>
     </div>
+
+    <div id="weeklyDayDetailArea" class="weekly-day-detail-area hidden"></div>
   `;
 }
 
-function renderWeeklyEvent(event) {
+function renderWeeklyEvent(event, day = null) {
   return `
-    <div class="weekly-event" onclick="openCourseModalById('${event.courseId}')">
-      <div class="weekly-event-top">
-        <span class="weekly-type ${event.type === "round" ? "type-round" : "type-course"}">
-          ${event.type === "round" ? "차수" : "과정"}
-        </span>
-        ${statusBadge(event.status)}
+    <div class="weekly-calendar-event ${event.type === "round" ? "event-round" : "event-course"}" onclick="openCourseModalById('${event.courseId}')">
+      <div class="weekly-calendar-event-title">
+        ${event.type === "round" ? `<span>차</span>` : `<span>과</span>`}
+        ${escapeHtml(event.title)}
       </div>
-
-      <div class="weekly-event-title">${escapeHtml(event.title)}</div>
-      <div class="weekly-event-meta">
-        <i class="fa-solid fa-calendar-day"></i>
-        ${formatShortDate(event.startDate)} ~ ${formatShortDate(event.endDate)}
+      <div class="weekly-calendar-event-meta">
+        ${escapeHtml(formatShortDate(event.startDate))}~${escapeHtml(formatShortDate(event.endDate))}
       </div>
-      <div class="weekly-event-meta">
-        <i class="fa-solid fa-user"></i>
-        PM ${escapeHtml(getMemberName(event.pmId) || "-")}
-      </div>
-      ${
-        event.place
-          ? `<div class="weekly-event-meta"><i class="fa-solid fa-location-dot"></i>${escapeHtml(event.place)}</div>`
-          : ""
-      }
     </div>
   `;
 }
+
+window.openWeeklyDayDetail = function(dateValue) {
+  const date = new Date(dateValue + "T00:00:00");
+  const month = state.weeklyLayerMonth;
+  const events = collectTimelineEventsForMonth(month)
+    .filter((event) => rangesOverlap(event.startDate, event.endDate, date, date));
+
+  const area = document.getElementById("weeklyDayDetailArea");
+  if (!area) return;
+
+  area.classList.remove("hidden");
+  area.innerHTML = `
+    <div class="weekly-detail-panel">
+      <div class="weekly-detail-head">
+        <div>
+          <b>${formatShortDate(date)} 상세 일정</b>
+          <span>${events.length}건</span>
+        </div>
+        <button type="button" onclick="document.getElementById('weeklyDayDetailArea').classList.add('hidden')">닫기</button>
+      </div>
+
+      <div class="weekly-detail-list">
+        ${
+          events.length
+            ? events.map((event) => `
+              <div class="weekly-detail-item" onclick="openCourseModalById('${event.courseId}')">
+                <div class="weekly-detail-top">
+                  <span class="weekly-type ${event.type === "round" ? "type-round" : "type-course"}">
+                    ${event.type === "round" ? "차수" : "과정"}
+                  </span>
+                  ${statusBadge(event.status)}
+                </div>
+                <div class="weekly-detail-title">${escapeHtml(event.title)}</div>
+                <div class="weekly-detail-meta">
+                  <i class="fa-solid fa-calendar-day"></i>
+                  ${formatShortDate(event.startDate)} ~ ${formatShortDate(event.endDate)}
+                </div>
+                <div class="weekly-detail-meta">
+                  <i class="fa-solid fa-user"></i>
+                  PM ${escapeHtml(getMemberName(event.pmId) || "-")}
+                </div>
+                ${
+                  event.place
+                    ? `<div class="weekly-detail-meta"><i class="fa-solid fa-location-dot"></i>${escapeHtml(event.place)}</div>`
+                    : ""
+                }
+              </div>
+            `).join("")
+            : `<div class="weekly-no-event">해당 날짜 일정 없음</div>`
+        }
+      </div>
+    </div>
+  `;
+
+  area.scrollIntoView({ behavior: "smooth", block: "nearest" });
+};
 
 function collectTimelineEventsForMonth(month) {
   const courses = getFilteredCourses();
@@ -872,6 +1128,12 @@ function toDateInputValue(date) {
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
+}
+
+function isSameDate(a, b) {
+  return a.getFullYear() === b.getFullYear()
+    && a.getMonth() === b.getMonth()
+    && a.getDate() === b.getDate();
 }
 
 function formatShortDate(date) {
