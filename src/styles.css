@@ -2094,3 +2094,124 @@ body {
     align-items: stretch;
   }
 }
+
+
+/* =========================================================
+   체크리스트 수정 오류 방지 / 타임라인 상태 가시성 강화
+   ========================================================= */
+
+.timeline-title-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  min-width: 0;
+}
+
+.timeline-title-sub > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-status-mini {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.timeline-status-mini-planning {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.timeline-status-mini-ready {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.timeline-status-mini-running {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.timeline-status-mini-completed {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.timeline-status-mini-hold {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.timeline-status-mini-canceled {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.timeline-row-block.timeline-row-planning {
+  border-left: 5px solid #94a3b8;
+}
+
+.timeline-row-block.timeline-row-ready {
+  border-left: 5px solid #3b82f6;
+}
+
+.timeline-row-block.timeline-row-running {
+  border-left: 5px solid #f59e0b;
+}
+
+.timeline-row-block.timeline-row-completed {
+  border-left: 5px solid #10b981;
+}
+
+.timeline-row-block.timeline-row-hold {
+  border-left: 5px solid #8b5cf6;
+}
+
+.timeline-row-block.timeline-row-canceled {
+  border-left: 5px solid #ef4444;
+}
+
+.timeline-cell.active.timeline-status-planning {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+}
+
+.timeline-cell.active.timeline-status-ready {
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+}
+
+.timeline-cell.active.timeline-status-running {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.16);
+}
+
+.timeline-cell.active.timeline-status-completed {
+  background: linear-gradient(135deg, #34d399, #059669);
+}
+
+.timeline-cell.active.timeline-status-hold {
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+}
+
+.timeline-cell.active.timeline-status-canceled {
+  background: repeating-linear-gradient(
+    135deg,
+    #ef4444 0,
+    #ef4444 6px,
+    #fecaca 6px,
+    #fecaca 12px
+  );
+}
+
+.checklist-edit-btn {
+  z-index: 2;
+}
+
+.checklist-edit-row.is-hidden .checklist-edit-title {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
