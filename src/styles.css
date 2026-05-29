@@ -2288,3 +2288,248 @@ body {
   background: #eef2ff;
   color: #1e3a8a;
 }
+
+/* =========================================================
+   체크리스트 UI 재정리 - 콤팩트 리스트형
+   기존 카드형 CSS 덮어쓰기용
+   ========================================================= */
+
+.checklist-panel {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid #dbe3ef;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.checklist-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.checklist-title {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f2742;
+}
+
+.checklist-guide {
+  display: none;
+}
+
+.checklist-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checklist-edit-btn {
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid #dbe3ef;
+  border-radius: 9px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.checklist-edit-btn:hover {
+  background: #eef2f7;
+  transform: none;
+}
+
+.checklist-score {
+  min-width: auto;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 9px;
+  background: #0f2742;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  box-shadow: none;
+}
+
+.checklist-score strong {
+  font-size: 14px;
+}
+
+.checklist-score span {
+  font-size: 12px;
+}
+
+.checklist-progress {
+  height: 5px;
+  border-radius: 999px;
+  background: #e5eaf1;
+}
+
+.checklist-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #2563eb;
+}
+
+.checklist-percent-row {
+  margin-top: 5px;
+  margin-bottom: 10px;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.checklist-percent-row b {
+  color: #2563eb;
+}
+
+/* 핵심: 카드형 → 리스트형 */
+.checklist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid #e5eaf1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.checklist-card {
+  min-height: 46px;
+  padding: 9px 12px;
+  border: 0;
+  border-bottom: 1px solid #eef2f7;
+  border-radius: 0;
+  background: #ffffff;
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  box-shadow: none;
+  transform: none;
+}
+
+.checklist-card:last-child {
+  border-bottom: 0;
+}
+
+.checklist-card:hover {
+  border-color: transparent;
+  background: #f8fafc;
+  box-shadow: none;
+  transform: none;
+}
+
+.checklist-card input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.checklist-custom-box {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 5px;
+  background: #ffffff;
+  color: transparent;
+}
+
+.checklist-custom-box i {
+  font-size: 10px;
+}
+
+.checklist-card.is-done {
+  border-color: transparent;
+  background: #ffffff;
+}
+
+.checklist-card.is-done:hover {
+  background: #f8fafc;
+}
+
+.checklist-card.is-done .checklist-custom-box {
+  border-color: #16a34a;
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.checklist-content {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.checklist-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+.checklist-card.is-done .checklist-name {
+  color: #334155;
+}
+
+.checklist-date {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.checklist-date.muted {
+  color: #94a3b8;
+}
+
+.checklist-state {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.checklist-card.is-done .checklist-state {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* 모바일에서는 날짜 줄바꿈 허용 */
+@media (max-width: 768px) {
+  .checklist-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .checklist-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .checklist-card {
+    grid-template-columns: 24px 1fr auto;
+    padding: 10px 11px;
+  }
+
+  .checklist-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .checklist-date {
+    font-size: 11px;
+  }
+}
