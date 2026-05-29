@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>HRI HRD사업팀 2026 과정운영 계획</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://kit.fontawesome.com/4d1b7b6e4f.js" crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="./src/styles.css" />
+</head>
+
+<body class="bg-slate-100 text-slate-800">
+  <header class="bg-[#0f2742] text-white shadow">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold">HRI HRD사업팀 2026 과정운영 계획</h1>
+        <p class="text-sm text-slate-300 mt-1">GitHub Pages + Supabase 기반 과정운영 관리 웹앱</p>
+      </div>
+
+      <div class="flex flex-col md:flex-row gap-2 md:items-center">
+        <select id="currentUserSelect" class="text-slate-800 rounded px-3 py-2 text-sm min-w-[180px]">
+          <option value="">현재 사용자 선택</option>
+        </select>
+
+        <button id="refreshStatusBtn" class="bg-amber-500 hover:bg-amber-600 rounded px-3 py-2 text-sm font-semibold">
+          <i class="fa-solid fa-rotate"></i>
+          상태 갱신
+        </button>
+
+        <span id="syncStatus" class="text-xs bg-white/10 rounded px-3 py-2">
+          연결 준비 중
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="stat-card">
+        <div class="stat-label">전체 프로젝트</div>
+        <div id="statTotalCourses" class="stat-value">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">진행/운영중</div>
+        <div id="statRunningCourses" class="stat-value">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">전체 차수</div>
+        <div id="statTotalRounds" class="stat-value">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">인당 평균 배정</div>
+        <div id="statAvgWorkload" class="stat-value">0</div>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-xl shadow p-4 mb-5">
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+        <input id="searchInput" class="input" placeholder="과정명/고객사/장소 검색" />
+
+        <select id="managerFilter" class="input">
+          <option value="">담당자 전체</option>
+        </select>
+
+        <select id="statusFilter" class="input">
+          <option value="">상태 전체</option>
+        </select>
+
+        <select id="regionFilter" class="input">
+          <option value="">연수지역 전체</option>
+        </select>
+
+        <div class="flex gap-2">
+          <button id="resetFilterBtn" class="btn-secondary flex-1">초기화</button>
+          <button id="openCourseModalBtn" class="btn-primary flex-1">신규 등록</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="flex gap-2 mb-4 overflow-x-auto">
+      <button class="view-tab active" data-view="timeline">
+        <i class="fa-solid fa-calendar-days"></i> 연간 타임라인
+      </button>
+      <button class="view-tab" data-view="kanban">
+        <i class="fa-solid fa-table-columns"></i> 단계별 보드
+      </button>
+      <button class="view-tab" data-view="rr">
+        <i class="fa-solid fa-users"></i> 담당자별 R&R
+      </button>
+      <button class="view-tab" data-view="logs">
+        <i class="fa-solid fa-clock-rotate-left"></i> 최근 이력
+      </button>
+    </section>
+
+    <section id="timelineView" class="view-section"></section>
+    <section id="kanbanView" class="view-section hidden"></section>
+    <section id="rrView" class="view-section hidden"></section>
+    <section id="logsView" class="view-section hidden"></section>
+  </main>
+
+  <!-- 과정 등록/수정 모달 -->
+  <div id="courseModal" class="modal hidden">
+    <div class="modal-panel max-w-4xl">
+      <div class="modal-header">
+        <h2 id="courseModalTitle" class="text-lg font-bold">신규 프로젝트 등록</h2>
+        <button class="modal-close" data-close-modal="courseModal">&times;</button>
+      </div>
+
+      <form id="courseForm" class="modal-body">
+        <input type="hidden" id="courseId" />
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="form-field">
+            <span>과정명 *</span>
+            <input id="courseName" class="input" required />
+          </label>
+
+          <label class="form-field">
+            <span>고객사</span>
+            <input id="clientName" class="input" />
+          </label>
+
+          <label class="form-field">
+            <span>교육대상</span>
+            <input id="targetAudience" class="input" />
+          </label>
+
+          <label class="form-field">
+            <span>진행상태</span>
+            <select id="courseStatus" class="input"></select>
+          </label>
+
+          <label class="form-field">
+            <span>시작월</span>
+            <input id="startMonth" class="input" type="number" min="1" max="12" />
+          </label>
+
+          <label class="form-field">
+            <span>종료월</span>
+            <input id="endMonth" class="input" type="number" min="1" max="12" />
+          </label>
+
+          <label class="form-field">
+            <span>연수지역</span>
+            <select id="region" class="input"></select>
+          </label>
+
+          <label class="form-field">
+            <span>세부장소</span>
+            <input id="locationDetail" class="input" />
+          </label>
+
+          <label class="form-field">
+            <span>정담당자</span>
+            <select id="mainManager" class="input"></select>
+          </label>
+
+          <label class="form-field">
+            <span>부담당자1</span>
+            <select id="subManager1" class="input"></select>
+          </label>
+
+          <label class="form-field">
+            <span>부담당자2</span>
+            <select id="subManager2" class="input"></select>
+          </label>
+
+          <label class="form-field">
+            <span>부담당자3</span>
+            <select id="subManager3" class="input"></select>
+          </label>
+
+          <label class="form-field">
+            <span>예상예산</span>
+            <input id="expectedBudget" class="input" type="number" />
+          </label>
+        </div>
+
+        <label class="form-field mt-3">
+          <span>특이사항</span>
+          <textarea id="courseNotes" class="input min-h-[80px]"></textarea>
+        </label>
+
+        <div class="modal-footer">
+          <button type="button" id="hideCourseBtn" class="btn-danger hidden">숨김 처리</button>
+          <button type="button" class="btn-secondary" data-close-modal="courseModal">취소</button>
+          <button type="submit" class="btn-primary">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 상세 모달 -->
+  <div id="detailModal" class="modal hidden">
+    <div class="modal-panel max-w-6xl">
+      <div class="modal-header">
+        <div>
+          <h2 id="detailTitle" class="text-lg font-bold">과정 상세</h2>
+          <p id="detailSubtitle" class="text-sm text-slate-500 mt-1"></p>
+        </div>
+        <button class="modal-close" data-close-modal="detailModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button id="editCourseFromDetailBtn" class="btn-secondary">과정 수정</button>
+          <button id="openRoundModalBtn" class="btn-primary">차수 추가</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <section>
+            <h3 class="section-title">세부 차수</h3>
+            <div id="roundList" class="space-y-3"></div>
+          </section>
+
+          <section>
+            <h3 class="section-title">실무 체크리스트</h3>
+            <div id="checklistArea" class="bg-slate-50 rounded-lg p-3"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 차수 등록/수정 모달 -->
+  <div id="roundModal" class="modal hidden">
+    <div class="modal-panel max-w-3xl">
+      <div class="modal-header">
+        <h2 id="roundModalTitle" class="text-lg font-bold">차수 등록</h2>
+        <button class="modal-close" data-close-modal="roundModal">&times;</button>
+      </div>
+
+      <form id="roundForm" class="modal-body">
+        <input type="hidden" id="roundId" />
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="form-field">
+            <span>차수 *</span>
+            <input id="roundNo" class="input" type="number" min="1" max="15" required />
+          </label>
+
+          <label class="form-field">
+            <span>세부과정명</span>
+            <input id="roundName" class="input" />
+          </label>
+
+          <label class="form-field">
+            <span>교육시작일 YYMMDD</span>
+            <input id="roundStartDate" class="input" placeholder="예: 260704" maxlength="6" />
+          </label>
+
+          <label class="form-field">
+            <span>교육종료일 YYMMDD</span>
+            <input id="roundEndDate" class="input" placeholder="예: 260705" maxlength="6" />
+          </label>
+
+          <label class="form-field">
+            <span>교육일정표기</span>
+            <input id="roundDateLabel" class="input" placeholder="예: 7/4~7/5" />
+          </label>
+
+          <label class="form-field">
+            <span>진행상태</span>
+            <select id="roundStatus" class="input"></select>
+          </label>
+
+          <label class="form-field">
+            <span>운영장소</span>
+            <input id="roundVenue" class="input" />
+          </label>
+
+          <label class="form-field">
+            <span>비고</span>
+            <input id="roundRemarks" class="input" />
+          </label>
+        </div>
+
+        <label class="form-field mt-3">
+          <span>차수별 메모</span>
+          <textarea id="roundMemo" class="input min-h-[70px]"></textarea>
+        </label>
+
+        <div id="completedFields" class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3 hidden bg-green-50 border border-green-200 rounded-lg p-3">
+          <label class="form-field">
+            <span>운영시간</span>
+            <input id="operationHours" class="input" type="number" step="0.5" />
+          </label>
+
+          <label class="form-field">
+            <span>전반만족도</span>
+            <input id="satisfaction" class="input" type="number" step="0.1" min="0" max="5" />
+          </label>
+
+          <label class="form-field">
+            <span>교육인원</span>
+            <input id="participantCount" class="input" type="number" min="0" />
+          </label>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="hideRoundBtn" class="btn-danger hidden">차수 숨김</button>
+          <button type="button" class="btn-secondary" data-close-modal="roundModal">취소</button>
+          <button type="submit" class="btn-primary">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="./src/supabase.js"></script>
+  <script src="./src/app.js"></script>
+</body>
+</html>
