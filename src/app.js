@@ -2010,6 +2010,79 @@ function renderChecklistEditList(courseId, roundId = null, scope = "course", con
     </div>
   `).join("");
 }
+
+window.moveChecklistItem = async function(courseId, roundIdRaw, itemId, direction, scope, containerId) {
+  const roundId = roundIdRaw || null;
+  const targetContainerId = containerId || (scope === "round" ? "roundChecklistArea" : "courseChecklistArea");
+
+  try {
+    await ensureChecklistStatuses(courseId, roundId, scope);
+
+    const items = getChecklistItemsByScope(scope, courseId, roundId);
+
+    const rows = items.map((item) => {
+      const status = state.checklistStatuses.find(
+        (s) =>
+          s.course_id === courseId &&
+          normalizeId(s.round_id) === normalizeId(roundId) &&
+          s.checklist_item_id === item.id
+      );
+
+      return {
+        item,
+        status,
+        isHidden: !!status?.is_hidden,
+        sortOrder: Number(status?.sort_order ?? item.sort_order ?? 9999),
+      };
+    })
+    .filter((row) => !row.isHidden && row.status)
+    .sort((a, b) => {
+      if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+      return String(a.item.title || "").localeCompare(String(b.item.title || ""));
+    });
+
+    const currentIndex = rows.findIndex((row) => row.item.id === itemId);
+    if (currentIndex < 0) return;
+
+    const nextIndex = currentIndex + Number(direction);
+    if (nextIndex < 0 || nextIndex >= rows.length) return;
+
+    const reordered = [...rows];
+    const [target] = reordered.splice(currentIndex, 1);
+    reordered.splice(nextIndex, 0, target);
+
+    const updates = reordered.map((row, index) => {
+      return db
+        .from("checklist_statuses")
+        .update({
+          sort_order: index + 1,
+          updated_by: nullIfEmpty(state.currentUserId),
+        })
+        .eq("id", row.status.id);
+    });
+
+    const responses = await Promise.all(updates);
+    responses.forEach(throwIfError);
+
+    await insertLog({
+      target_type: "체크리스트",
+      course_id: courseId,
+      round_id: roundId,
+      action_type: "수정",
+      change_summary: "체크리스트 항목 순서 변경",
+    });
+
+    await loadAll();
+
+    renderChecklistEditList(courseId, roundId, scope, targetContainerId);
+    renderChecklist(courseId, roundId, targetContainerId, scope);
+
+  } catch (error) {
+    console.error(error);
+    alert("체크리스트 순서 변경 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
 async function addCustomChecklistItem() {
   const courseId = document.getElementById("checklistEditCourseId").value;
   const roundId = document.getElementById("checklistEditRoundId").value || null;
