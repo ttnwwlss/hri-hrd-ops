@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -22,7 +23,7 @@
           HRI HRD사업팀 2026 과정운영 계획
         </h1>
         <p class="text-sm text-slate-300 mt-1">
-          GitHub Pages + Supabase 기반 과정운영 관리 시스템
+          사용법/문의는 수진에게..🤓
         </p>
       </div>
 
@@ -192,12 +193,12 @@
             </label>
 
             <label class="form-field">
-              <span>고객사 *</span>
+              <span>고객사</span>
               <input id="clientName" class="input" />
             </label>
 
             <label class="form-field">
-              <span>교육 대상 *</span>
+              <span>교육 대상</span>
               <input id="targetAudience" class="input" />
             </label>
 
@@ -221,12 +222,12 @@
 
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <label class="form-field">
-              <span>과정 시작일 YYMMDD *</span>
+              <span>과정 시작일 YYMMDD</span>
               <input id="startDateYmd" class="input" placeholder="예: 260704" maxlength="6" />
             </label>
 
             <label class="form-field">
-              <span>과정 종료일 YYMMDD *</span>
+              <span>과정 종료일 YYMMDD</span>
               <input id="endDateYmd" class="input" placeholder="예: 260705" maxlength="6" />
             </label>
 
@@ -248,25 +249,40 @@
             운영 담당자 배정 및 R&R 역할 구분
           </h3>
 
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <label class="form-field">
-              <span class="pm-label">정 담당자(PM) *</span>
+              <span class="business-label">사업담당자</span>
+              <select id="businessManager" class="input manager-business"></select>
+            </label>
+
+            <label class="form-field">
+              <span class="pm-label">운영PM</span>
               <select id="mainManager" class="input manager-pm"></select>
             </label>
 
             <label class="form-field">
-              <span class="sub-label">부 담당자 1</span>
+              <span class="sub-label">운영보조 1</span>
               <select id="subManager1" class="input manager-sub"></select>
             </label>
 
             <label class="form-field">
-              <span class="sub-label">부 담당자 2</span>
+              <span class="sub-label">운영보조 2</span>
               <select id="subManager2" class="input manager-sub"></select>
             </label>
 
             <label class="form-field">
-              <span class="sub-label">부 담당자 3</span>
-              <select id="subManager3" class="input manager-sub"></select>
+              <span class="field-label">현장지원</span>
+
+              <div class="support-select-row">
+                <select id="supportManagerSelect" class="input manager-field">
+                  <option value="">현장지원 인원 선택</option>
+                </select>
+                <button id="addSupportManagerBtn" type="button" class="btn-secondary">
+                  추가
+                </button>
+              </div>
+
+              <div id="supportManagerTags" class="support-tags"></div>
             </label>
           </div>
         </section>
@@ -296,11 +312,7 @@
         </section>
 
         <section id="courseChecklistSection" class="form-section hidden">
-          <h3 class="form-section-title">
-            <i class="fa-solid fa-clipboard-check"></i>
-            과정 공통 체크리스트
-          </h3>
-          <div id="courseChecklistArea" class="check-grid"></div>
+          <div id="courseChecklistArea"></div>
         </section>
 
         <section class="form-section">
@@ -399,11 +411,7 @@
         </div>
 
         <section class="form-section mt-5">
-          <h3 class="form-section-title">
-            <i class="fa-solid fa-clipboard-check"></i>
-            차수별 체크리스트
-          </h3>
-          <div id="roundChecklistArea" class="check-grid"></div>
+          <div id="roundChecklistArea"></div>
         </section>
 
         <div class="modal-footer">
