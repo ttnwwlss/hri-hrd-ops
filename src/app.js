@@ -30,6 +30,7 @@ let state = {
   currentView: "timeline",
   selectedCourseId: "",
   selectedRoundId: "",
+  selectedSupportManagerIds: [],
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -50,6 +51,7 @@ function bindEvents() {
 
   document.getElementById("hideCourseBtn").addEventListener("click", hideCurrentCourse);
   document.getElementById("hideRoundBtn").addEventListener("click", hideCurrentRound);
+
   document.getElementById("completeRoundBtn").addEventListener("click", () => {
     const roundId = document.getElementById("roundId").value;
     openCompleteModal(roundId);
@@ -62,7 +64,9 @@ function bindEvents() {
     renderMemberList();
     openModal("memberModal");
   });
+
   document.getElementById("addMemberBtn").addEventListener("click", addMember);
+  document.getElementById("addSupportManagerBtn").addEventListener("click", addSupportManagerTag);
 
   document.getElementById("updateDataBtn").addEventListener("click", updateData);
   document.getElementById("downloadExcelBtn").addEventListener("click", downloadExcel);
@@ -169,6 +173,7 @@ function fillStaticSelects() {
 }
 
 function fillStatusOptions(select, includeAll) {
+  if (!select) return;
   select.innerHTML = includeAll ? `<option value="">상태 전체</option>` : "";
   STATUS_ORDER.forEach((key) => {
     const option = document.createElement("option");
@@ -179,6 +184,7 @@ function fillStatusOptions(select, includeAll) {
 }
 
 function fillRegionOptions(select, includeAll) {
+  if (!select) return;
   select.innerHTML = includeAll ? `<option value="">연수지역 전체</option>` : "";
   REGIONS.forEach((region) => {
     const option = document.createElement("option");
@@ -192,17 +198,23 @@ function fillMemberSelects() {
   const selectors = [
     "currentUserSelect",
     "managerFilter",
+    "businessManager",
     "mainManager",
     "subManager1",
     "subManager2",
-    "subManager3",
+    "supportManagerSelect",
   ];
 
   selectors.forEach((id) => {
     const select = document.getElementById(id);
+    if (!select) return;
+
     const label =
       id === "currentUserSelect" ? "현재 사용자 선택" :
       id === "managerFilter" ? "담당자 전체" :
+      id === "businessManager" ? "사업담당자 선택" :
+      id === "mainManager" ? "운영PM 선택" :
+      id === "supportManagerSelect" ? "현장지원 인원 선택" :
       "없음";
 
     select.innerHTML = `<option value="">${label}</option>`;
@@ -241,10 +253,11 @@ function renderStats() {
   const activeMembers = state.members.length || 1;
   const managerAssignments = courses.reduce((sum, c) => {
     return sum + [
+      c.business_manager_id,
       c.main_manager_id,
       c.sub_manager1_id,
       c.sub_manager2_id,
-      c.sub_manager3_id
+      ...(c.support_manager_ids || []),
     ].filter(Boolean).length;
   }, 0);
 
@@ -286,10 +299,11 @@ function getFilteredCourses() {
     const matchedRegion = !region || course.region === region;
 
     const managerIds = [
+      course.business_manager_id,
       course.main_manager_id,
       course.sub_manager1_id,
       course.sub_manager2_id,
-      course.sub_manager3_id
+      ...(course.support_manager_ids || []),
     ].filter(Boolean);
 
     const matchedManager = !managerId || managerIds.includes(managerId);
@@ -348,40 +362,131 @@ function renderKanban() {
   const container = document.getElementById("kanbanView");
   const courses = getFilteredCourses();
 
-  let html = `<div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-3">`;
+  const mainStatuses = ["planning", "ready", "running", "completed"];
+  const subStatuses = ["hold", "canceled"];
 
-  STATUS_ORDER.forEach((status) => {
+  const renderColumn = (status) => {
     const list = courses.filter((c) => c.status === status);
 
-    html += `
-      <div class="kanban-column">
-        <div class="flex justify-between items-center mb-3">
-          <h3 class="font-black text-slate-700">${STATUS_LABELS[status]}</h3>
-          <span class="text-xs bg-white rounded-full px-2 py-1">${list.length}</span>
+    return `
+      <div class="kanban-column-v2 kanban-${status}">
+        <div class="kanban-header-v2">
+          <div class="flex items-center gap-2">
+            <span class="kanban-dot dot-${status}"></span>
+            <h3>${STATUS_LABELS[status]}</h3>
+          </div>
+          <span class="kanban-count">${list.length}</span>
         </div>
-        <div class="space-y-3">
-          ${list.map(renderCourseMiniCard).join("") || `<div class="small-muted">해당 과정 없음</div>`}
+
+        <div class="kanban-body-v2">
+          ${
+            list.length
+              ? list.map(renderCourseMiniCard).join("")
+              : `
+                <div class="kanban-empty">
+                  <i class="fa-solid fa-box-open"></i>
+                  <div>배정된 과정이 없습니다.</div>
+                </div>
+              `
+          }
         </div>
       </div>
     `;
-  });
+  };
 
-  html += `</div>`;
-  container.innerHTML = html;
+  container.innerHTML = `
+    <div class="kanban-board-main">
+      ${mainStatuses.map(renderColumn).join("")}
+    </div>
+
+    <div class="kanban-board-sub">
+      ${subStatuses.map(renderColumn).join("")}
+    </div>
+  `;
 }
 
 function renderCourseMiniCard(course) {
-  const roundCount = state.rounds.filter((r) => r.course_id === course.id).length;
+  const rounds = state.rounds
+    .filter((r) => r.course_id === course.id)
+    .sort((a, b) => a.round_no - b.round_no);
+
+  const totalCheckCount = getCourseChecklistCount(course.id);
+  const doneCheckCount = getCourseDoneChecklistCount(course.id);
+
+  const progress = totalCheckCount
+    ? Math.round((doneCheckCount / totalCheckCount) * 100)
+    : 0;
+
+  const business = getMemberShortName(course.business_manager_id);
+  const pm = getMemberShortName(course.main_manager_id);
+  const sub1 = getMemberShortName(course.sub_manager1_id);
+  const fieldCount = (course.support_manager_ids || []).length;
+
+  const budgetText = course.expected_budget ? `₩ ${Number(course.expected_budget).toLocaleString()}` : "";
+  const periodText = makeDateLabel(course.start_date_ymd, course.end_date_ymd)
+    || makeMonthRangeLabel(course)
+    || "-";
 
   return `
-    <div class="course-card cursor-pointer" onclick="openCourseModalById('${course.id}')">
-      <div class="flex justify-between gap-2 mb-2">
-        <h4 class="font-black text-sm">${escapeHtml(course.course_name)}</h4>
-        ${statusBadge(course.status)}
+    <div class="kanban-course-card" onclick="openCourseModalById('${course.id}')">
+      <div class="kanban-card-top">
+        <span class="client-pill">${escapeHtml(course.client_name || "고객사 미정")}</span>
+        <span class="period-text">${escapeHtml(periodText)}</span>
       </div>
-      <div class="small-muted">${escapeHtml(course.client_name || "-")}</div>
-      <div class="small-muted mt-1">정담당: ${escapeHtml(getMemberName(course.main_manager_id) || "-")}</div>
-      <div class="small-muted mt-1">차수: ${roundCount}개 · ${escapeHtml(course.region || "미정")}</div>
+
+      <h4 class="kanban-card-title">${escapeHtml(course.course_name)}</h4>
+
+      <div class="kanban-card-location">
+        <i class="fa-solid fa-location-dot"></i>
+        ${escapeHtml(course.region || "미정")}
+        ${course.location_detail ? ` | ${escapeHtml(course.location_detail)}` : ""}
+      </div>
+
+      <div class="progress-row">
+        <div class="flex justify-between text-xs mb-1">
+          <span>과정 준비율</span>
+          <b>${doneCheckCount}/${totalCheckCount} (${progress}%)</b>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${progress}%;"></div>
+        </div>
+      </div>
+
+      <div class="round-preview">
+        <div class="round-preview-title">
+          <i class="fa-solid fa-layer-group"></i>
+          세부 차수 정보 (${rounds.length}개)
+        </div>
+
+        ${
+          rounds.length
+            ? rounds.slice(0, 3).map((round) => `
+              <div class="round-preview-item">
+                <span class="round-dot dot-${round.status}"></span>
+                <span class="round-preview-name">${round.round_no}차수 ${escapeHtml(round.round_name || "")}</span>
+                <span class="round-preview-date">${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</span>
+              </div>
+            `).join("")
+            : `<div class="small-muted">등록된 차수 없음</div>`
+        }
+
+        ${
+          rounds.length > 3
+            ? `<div class="small-muted mt-1">외 ${rounds.length - 3}개 차수</div>`
+            : ""
+        }
+      </div>
+
+      <div class="kanban-card-footer">
+        <div class="avatar-group">
+          ${business ? `<span class="avatar business-avatar" title="사업담당자">${escapeHtml(business)}</span>` : ""}
+          ${pm ? `<span class="avatar pm-avatar" title="운영PM">${escapeHtml(pm)}</span>` : ""}
+          ${sub1 ? `<span class="avatar sub-avatar" title="운영보조">${escapeHtml(sub1)}</span>` : ""}
+          ${fieldCount ? `<span class="avatar field-avatar" title="현장지원">+${fieldCount}</span>` : ""}
+        </div>
+
+        <div class="budget-text">${escapeHtml(budgetText)}</div>
+      </div>
     </div>
   `;
 }
@@ -390,35 +495,100 @@ function renderRR() {
   const container = document.getElementById("rrView");
   const courses = getFilteredCourses();
 
-  let html = `<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">`;
+  let html = `<div class="rr-grid">`;
 
   state.members.forEach((member) => {
-    const assigned = courses.filter((c) => {
-      return [
-        c.main_manager_id,
-        c.sub_manager1_id,
-        c.sub_manager2_id,
-        c.sub_manager3_id
-      ].includes(member.id);
+    const assigned = courses.filter((course) => {
+      const managerIds = [
+        course.business_manager_id,
+        course.main_manager_id,
+        course.sub_manager1_id,
+        course.sub_manager2_id,
+        ...(course.support_manager_ids || [])
+      ].filter(Boolean);
+
+      return managerIds.includes(member.id);
     });
 
+    const businessCourses = assigned.filter((course) => course.business_manager_id === member.id);
+    const pmCourses = assigned.filter((course) => course.main_manager_id === member.id);
+    const assistCourses = assigned.filter((course) =>
+      course.sub_manager1_id === member.id || course.sub_manager2_id === member.id
+    );
+    const fieldCourses = assigned.filter((course) =>
+      (course.support_manager_ids || []).includes(member.id)
+    );
+
+    const loadStatus = getLoadStatus(assigned.length);
+
     html += `
-      <div class="course-card">
-        <div class="flex justify-between items-center mb-3">
+      <div class="rr-card">
+        <div class="rr-card-head">
           <div>
-            <h3 class="font-black text-[#0f2742]">${escapeHtml(member.name)}</h3>
-            <p class="small-muted">${escapeHtml(member.position || "")}</p>
+            <div class="rr-position">${escapeHtml(member.position || "-")}</div>
+            <div class="rr-name">${escapeHtml(member.name)}</div>
           </div>
-          <div class="text-2xl font-black text-[#0f2742]">${assigned.length}</div>
+
+          <span class="load-badge ${loadStatus.className}">
+            ${loadStatus.label}
+          </span>
         </div>
 
-        <div class="space-y-2">
-          ${assigned.map((course) => `
-            <div class="border rounded-lg p-3 cursor-pointer hover:bg-slate-50" onclick="openCourseModalById('${course.id}')">
-              <div class="font-bold text-sm">${escapeHtml(course.course_name)}</div>
-              <div class="small-muted">${escapeHtml(getRoleLabel(course, member.id))} · ${STATUS_LABELS[course.status]}</div>
-            </div>
-          `).join("") || `<div class="small-muted">배정된 과정 없음</div>`}
+        <div class="rr-divider"></div>
+
+        <div class="rr-summary rr-summary-4">
+          <div>
+            <b>${businessCourses.length}</b>
+            <span>사업</span>
+          </div>
+          <div>
+            <b>${pmCourses.length}</b>
+            <span>PM</span>
+          </div>
+          <div>
+            <b>${assistCourses.length}</b>
+            <span>보조</span>
+          </div>
+          <div>
+            <b>${fieldCourses.length}</b>
+            <span>현장</span>
+          </div>
+        </div>
+
+        <div class="rr-section-title">
+          담당 프로젝트
+          <span>
+            (사업 ${businessCourses.length} / PM ${pmCourses.length} / 보조 ${assistCourses.length} / 현장 ${fieldCourses.length})
+          </span>
+        </div>
+
+        <div class="rr-project-list">
+          ${
+            assigned.length
+              ? assigned.map((course) => {
+                  const role = getRoleLabel(course, member.id);
+                  const period = makeDateLabel(course.start_date_ymd, course.end_date_ymd)
+                    || makeMonthRangeLabel(course)
+                    || "-";
+
+                  return `
+                    <div class="rr-project-item" onclick="openCourseModalById('${course.id}')">
+                      <div class="rr-project-main">
+                        <span class="rr-status-dot dot-${course.status}"></span>
+                        <b>${escapeHtml(course.course_name)}</b>
+                      </div>
+
+                      <div class="rr-project-sub">
+                        <span class="role-chip ${getRoleChipClass(role)}">
+                          ${escapeHtml(getRoleShortLabel(role))}
+                        </span>
+                        <span>${escapeHtml(period)}</span>
+                      </div>
+                    </div>
+                  `;
+                }).join("")
+              : `<div class="rr-empty">현재 배정된 과정 없음</div>`
+          }
         </div>
       </div>
     `;
@@ -468,6 +638,7 @@ async function openCourseModal(course = null) {
 
   const isEdit = !!course;
   state.selectedCourseId = course?.id || "";
+  state.selectedSupportManagerIds = course?.support_manager_ids || [];
 
   document.getElementById("courseModalTitle").innerHTML = isEdit
     ? `<i class="fa-solid fa-pen-to-square text-amber-400 mr-2"></i>[수정] ${escapeHtml(course.course_name)}`
@@ -485,13 +656,15 @@ async function openCourseModal(course = null) {
   document.getElementById("endDateYmd").value = course?.end_date_ymd || "";
   document.getElementById("region").value = course?.region || "미정";
   document.getElementById("locationDetail").value = course?.location_detail || "";
+  document.getElementById("businessManager").value = course?.business_manager_id || "";
   document.getElementById("mainManager").value = course?.main_manager_id || "";
   document.getElementById("subManager1").value = course?.sub_manager1_id || "";
   document.getElementById("subManager2").value = course?.sub_manager2_id || "";
-  document.getElementById("subManager3").value = course?.sub_manager3_id || "";
   document.getElementById("courseStatus").value = course?.status || "planning";
   document.getElementById("expectedBudget").value = course?.expected_budget || "";
   document.getElementById("courseNotes").value = course?.notes || "";
+
+  renderSupportManagerTags();
 
   if (isEdit) {
     document.getElementById("quickRoundNo").value = getNextRoundNo(course.id);
@@ -520,64 +693,116 @@ async function saveCourse(event) {
     return;
   }
 
-  try {
-    const id = document.getElementById("courseId").value;
+  const id = document.getElementById("courseId").value;
 
-    const payload = {
-      course_name: document.getElementById("courseName").value.trim(),
-      client_name: document.getElementById("clientName").value.trim() || null,
-      target_audience: document.getElementById("targetAudience").value.trim() || null,
-      start_date_ymd: courseStartDate || null,
-      end_date_ymd: courseEndDate || null,
-      start_month: getMonthFromYmd(courseStartDate),
-      end_month: getMonthFromYmd(courseEndDate),
-      region: document.getElementById("region").value || "미정",
-      location_detail: document.getElementById("locationDetail").value.trim() || null,
-      main_manager_id: nullIfEmpty(document.getElementById("mainManager").value),
-      sub_manager1_id: nullIfEmpty(document.getElementById("subManager1").value),
-      sub_manager2_id: nullIfEmpty(document.getElementById("subManager2").value),
-      sub_manager3_id: nullIfEmpty(document.getElementById("subManager3").value),
-      status: document.getElementById("courseStatus").value,
-      expected_budget: toNumberOrNull(document.getElementById("expectedBudget").value),
-      notes: document.getElementById("courseNotes").value.trim() || null,
-      updated_by: nullIfEmpty(state.currentUserId),
-    };
+  const businessManagerId = document.getElementById("businessManager").value || null;
+  const mainManagerId = document.getElementById("mainManager").value || null;
+  const subManager1Id = document.getElementById("subManager1").value || null;
+  const subManager2Id = document.getElementById("subManager2").value || null;
+
+  const payload = {
+    course_name: document.getElementById("courseName").value.trim(),
+    client_name: document.getElementById("clientName").value.trim() || null,
+    target_audience: document.getElementById("targetAudience").value.trim() || null,
+
+    start_date_ymd: courseStartDate || null,
+    end_date_ymd: courseEndDate || null,
+    start_month: getMonthFromYmd(courseStartDate),
+    end_month: getMonthFromYmd(courseEndDate),
+
+    region: document.getElementById("region").value || "미정",
+    location_detail: document.getElementById("locationDetail").value.trim() || null,
+
+    business_manager_id: businessManagerId,
+    main_manager_id: mainManagerId,
+    sub_manager1_id: subManager1Id,
+    sub_manager2_id: subManager2Id,
+    sub_manager3_id: null,
+    support_manager_ids: state.selectedSupportManagerIds || [],
+
+    status: document.getElementById("courseStatus").value,
+    expected_budget: toNumberOrNull(document.getElementById("expectedBudget").value),
+    notes: document.getElementById("courseNotes").value.trim() || null,
+    updated_by: state.currentUserId || null,
+  };
+
+  if (!payload.course_name) {
+    alert("프로젝트명을 입력해주세요.");
+    return;
+  }
+
+  try {
+    setSyncStatus("과정 저장 중...");
 
     let response;
     let actionType;
 
     if (id) {
-      response = await db.from("courses").update(payload).eq("id", id).select().single();
+      response = await db
+        .from("courses")
+        .update(payload)
+        .eq("id", id)
+        .select()
+        .single();
+
       actionType = "수정";
     } else {
-      response = await db.from("courses").insert(payload).select().single();
+      response = await db
+        .from("courses")
+        .insert(payload)
+        .select()
+        .single();
+
       actionType = "신규등록";
     }
 
     throwIfError(response);
 
+    const savedCourse = response.data;
+
     await insertLog({
       target_type: "과정",
-      course_id: response.data.id,
+      course_id: savedCourse.id,
       action_type: actionType,
       change_summary: `${payload.course_name} ${actionType}`,
     });
 
     await loadAll();
 
+    state.selectedCourseId = savedCourse.id;
+    state.selectedSupportManagerIds = savedCourse.support_manager_ids || [];
+
     if (!id) {
-      alert("과정이 등록되었습니다. 다시 과정을 열면 차수와 체크리스트를 관리할 수 있습니다.");
       closeModal("courseModal");
+      alert("과정이 등록되었습니다. 다시 과정을 열면 차수와 체크리스트를 관리할 수 있습니다.");
     } else {
-      state.selectedCourseId = id;
-      renderCourseModalRounds(id);
-      await ensureChecklistStatuses(id, null, "course");
-      renderChecklist(id, null, "courseChecklistArea", "course");
-      alert("과정 정보가 저장되었습니다.");
+      document.getElementById("courseId").value = savedCourse.id;
+      document.getElementById("businessManager").value = savedCourse.business_manager_id || "";
+      document.getElementById("mainManager").value = savedCourse.main_manager_id || "";
+      document.getElementById("subManager1").value = savedCourse.sub_manager1_id || "";
+      document.getElementById("subManager2").value = savedCourse.sub_manager2_id || "";
+
+      renderSupportManagerTags();
+      renderCourseModalRounds(savedCourse.id);
+      await ensureChecklistStatuses(savedCourse.id, null, "course");
+      renderChecklist(savedCourse.id, null, "courseChecklistArea", "course");
+
+      renderStats();
+      renderViews();
+
+      alert("과정 정보와 담당자 배정이 저장되었습니다.");
     }
+
+    setSyncStatus(`저장 완료 · ${formatNow()}`);
   } catch (error) {
     console.error(error);
-    alert("과정 저장 중 오류가 발생했습니다.\n\n" + error.message);
+    setSyncStatus("저장 오류");
+
+    alert(
+      "과정 저장 중 오류가 발생했습니다.\n\n" +
+      "오류 메시지:\n" +
+      (error.message || JSON.stringify(error))
+    );
   }
 }
 
@@ -954,7 +1179,7 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
 
   const items = getChecklistItemsByScope(scope);
 
-  container.innerHTML = items.map((item) => {
+  const rows = items.map((item) => {
     const status = state.checklistStatuses.find(
       (s) =>
         s.course_id === courseId &&
@@ -962,20 +1187,76 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
         s.checklist_item_id === item.id
     );
 
-    return `
-      <label class="check-item">
-        <input 
-          type="checkbox"
-          ${status?.is_done ? "checked" : ""}
-          onchange="toggleChecklist('${courseId}', '${roundId || ""}', '${item.id}', this.checked, '${containerId}', '${scope}')"
-        />
-        <span>
-          <b>${escapeHtml(item.code)}</b>
-          ${escapeHtml(item.title)}
-        </span>
-      </label>
-    `;
-  }).join("");
+    return {
+      item,
+      status,
+      isDone: !!status?.is_done,
+    };
+  });
+
+  const totalCount = rows.length;
+  const doneCount = rows.filter((row) => row.isDone).length;
+  const percent = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
+
+  const title = scope === "round" ? "차수 운영 체크리스트" : "과정 공통 체크리스트";
+  const guideText =
+    scope === "round"
+      ? "해당 차수 운영에 필요한 준비·운영·마무리 항목입니다."
+      : "과정 전체 기준으로 관리해야 하는 공통 실무 항목입니다.";
+
+  container.innerHTML = `
+    <div class="checklist-panel">
+      <div class="checklist-summary">
+        <div>
+          <div class="checklist-title">${title}</div>
+          <div class="checklist-guide">${guideText}</div>
+        </div>
+
+        <div class="checklist-score">
+          <strong>${doneCount}</strong>
+          <span>/ ${totalCount}</span>
+        </div>
+      </div>
+
+      <div class="checklist-progress">
+        <div class="checklist-progress-fill" style="width:${percent}%;"></div>
+      </div>
+
+      <div class="checklist-percent-row">
+        <span>완료율</span>
+        <b>${percent}%</b>
+      </div>
+
+      <div class="checklist-list">
+        ${
+          rows.length
+            ? rows.map(({ item, isDone }) => `
+              <label class="checklist-card ${isDone ? "is-done" : ""}">
+                <input
+                  type="checkbox"
+                  ${isDone ? "checked" : ""}
+                  onchange="toggleChecklist('${courseId}', '${roundId || ""}', '${item.id}', this.checked, '${containerId}', '${scope}')"
+                />
+
+                <span class="checklist-custom-box">
+                  <i class="fa-solid fa-check"></i>
+                </span>
+
+                <span class="checklist-content">
+                  <span class="checklist-code">${escapeHtml(item.code)}</span>
+                  <span class="checklist-name">${escapeHtml(item.title)}</span>
+                </span>
+
+                <span class="checklist-state">
+                  ${isDone ? "완료" : "대기"}
+                </span>
+              </label>
+            `).join("")
+            : `<div class="checklist-empty">등록된 체크리스트 항목이 없습니다.</div>`
+        }
+      </div>
+    </div>
+  `;
 }
 
 window.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, containerId, scope) {
@@ -1181,6 +1462,60 @@ window.hideMember = async function(memberId) {
 };
 
 // ---------------------------------------------------------
+// 현장지원 태그
+// ---------------------------------------------------------
+function addSupportManagerTag() {
+  const select = document.getElementById("supportManagerSelect");
+  const memberId = select.value;
+
+  if (!memberId) {
+    alert("현장지원 인원을 선택해주세요.");
+    return;
+  }
+
+  if (state.selectedSupportManagerIds.includes(memberId)) {
+    alert("이미 추가된 인원입니다.");
+    return;
+  }
+
+  state.selectedSupportManagerIds.push(memberId);
+  select.value = "";
+  renderSupportManagerTags();
+}
+
+function removeSupportManagerTag(memberId) {
+  state.selectedSupportManagerIds = state.selectedSupportManagerIds.filter((id) => id !== memberId);
+  renderSupportManagerTags();
+}
+
+function renderSupportManagerTags() {
+  const container = document.getElementById("supportManagerTags");
+  if (!container) return;
+
+  if (!state.selectedSupportManagerIds.length) {
+    container.innerHTML = `<div class="support-empty">현장지원 인원이 없습니다.</div>`;
+    return;
+  }
+
+  container.innerHTML = state.selectedSupportManagerIds.map((memberId) => {
+    const member = state.members.find((m) => m.id === memberId);
+    const name = member ? `${member.name}${member.position ? " / " + member.position : ""}` : "알 수 없음";
+
+    return `
+      <span class="support-tag">
+        <i class="fa-solid fa-person-circle-plus"></i>
+        ${escapeHtml(name)}
+        <button type="button" onclick="removeSupportManagerTag('${memberId}')">
+          ×
+        </button>
+      </span>
+    `;
+  }).join("");
+}
+
+window.removeSupportManagerTag = removeSupportManagerTag;
+
+// ---------------------------------------------------------
 // 데이터 업데이트 / 엑셀 다운로드
 // ---------------------------------------------------------
 async function updateData() {
@@ -1225,10 +1560,11 @@ function downloadExcel() {
     "과정종료일",
     "연수지역",
     "세부장소",
-    "정담당자",
-    "부담당자1",
-    "부담당자2",
-    "부담당자3",
+    "사업담당자",
+    "운영PM",
+    "운영보조1",
+    "운영보조2",
+    "현장지원",
     "과정상태",
     "예상예산",
     "차수",
@@ -1259,10 +1595,11 @@ function downloadExcel() {
         course.end_date_ymd,
         course.region,
         course.location_detail,
+        getMemberName(course.business_manager_id),
         getMemberName(course.main_manager_id),
         getMemberName(course.sub_manager1_id),
         getMemberName(course.sub_manager2_id),
-        getMemberName(course.sub_manager3_id),
+        getSupportManagerNames(course.support_manager_ids),
         STATUS_LABELS[course.status] || course.status,
         course.expected_budget,
         "",
@@ -1288,10 +1625,11 @@ function downloadExcel() {
           course.end_date_ymd,
           course.region,
           course.location_detail,
+          getMemberName(course.business_manager_id),
           getMemberName(course.main_manager_id),
           getMemberName(course.sub_manager1_id),
           getMemberName(course.sub_manager2_id),
-          getMemberName(course.sub_manager3_id),
+          getSupportManagerNames(course.support_manager_ids),
           STATUS_LABELS[course.status] || course.status,
           course.expected_budget,
           round.round_no,
@@ -1367,12 +1705,45 @@ function getMemberName(id) {
   return `${member.name}${member.position ? " / " + member.position : ""}`;
 }
 
+function getMemberShortName(id) {
+  if (!id) return "";
+  const member = state.members.find((m) => m.id === id);
+  if (!member) return "";
+  return member.name.slice(-2);
+}
+
+function getSupportManagerNames(ids) {
+  if (!ids || !ids.length) return "";
+  return ids
+    .map((id) => getMemberName(id))
+    .filter(Boolean)
+    .join(", ");
+}
+
 function getRoleLabel(course, memberId) {
-  if (course.main_manager_id === memberId) return "정담당자";
-  if (course.sub_manager1_id === memberId) return "부담당자1";
-  if (course.sub_manager2_id === memberId) return "부담당자2";
-  if (course.sub_manager3_id === memberId) return "부담당자3";
+  if (course.business_manager_id === memberId) return "사업담당자";
+  if (course.main_manager_id === memberId) return "운영PM";
+  if (course.sub_manager1_id === memberId) return "운영보조1";
+  if (course.sub_manager2_id === memberId) return "운영보조2";
+  if ((course.support_manager_ids || []).includes(memberId)) return "현장지원";
   return "담당자";
+}
+
+function getRoleChipClass(role) {
+  if (role === "사업담당자") return "role-business";
+  if (role === "운영PM") return "role-pm";
+  if (role === "운영보조1" || role === "운영보조2") return "role-sub";
+  if (role === "현장지원") return "role-field";
+  return "role-sub";
+}
+
+function getRoleShortLabel(role) {
+  if (role === "사업담당자") return "사업";
+  if (role === "운영PM") return "PM";
+  if (role === "운영보조1") return "보조1";
+  if (role === "운영보조2") return "보조2";
+  if (role === "현장지원") return "현장";
+  return role;
 }
 
 function statusBadge(status) {
@@ -1458,10 +1829,54 @@ function getCourseEndMonth(course) {
   return getMonthFromYmd(course.end_date_ymd) || course.end_month || null;
 }
 
+function makeMonthRangeLabel(course) {
+  const start = getCourseStartMonth(course);
+  const end = getCourseEndMonth(course);
+
+  if (!start && !end) return "";
+  if (start && !end) return `${start}월`;
+  if (!start && end) return `${end}월`;
+  if (start === end) return `${start}월`;
+  return `${start}월 ~ ${end}월`;
+}
+
 function getNextRoundNo(courseId) {
   const courseRounds = state.rounds.filter((r) => r.course_id === courseId);
   if (!courseRounds.length) return 1;
   return Math.min(Math.max(...courseRounds.map((r) => r.round_no)) + 1, 15);
+}
+
+function getCourseChecklistCount(courseId) {
+  return state.checklistStatuses.filter((item) => {
+    return item.course_id === courseId && !item.round_id;
+  }).length;
+}
+
+function getCourseDoneChecklistCount(courseId) {
+  return state.checklistStatuses.filter((item) => {
+    return item.course_id === courseId && !item.round_id && item.is_done;
+  }).length;
+}
+
+function getLoadStatus(count) {
+  if (count >= 5) {
+    return {
+      label: `과다 (${count})`,
+      className: "load-high",
+    };
+  }
+
+  if (count >= 1) {
+    return {
+      label: `적정 (${count})`,
+      className: "load-normal",
+    };
+  }
+
+  return {
+    label: `정상 (0)`,
+    className: "load-low",
+  };
 }
 
 function csvEscape(value) {
