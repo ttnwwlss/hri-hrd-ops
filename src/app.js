@@ -67,9 +67,12 @@ function bindEvents() {
 
   document.getElementById("addMemberBtn").addEventListener("click", addMember);
   document.getElementById("addSupportManagerBtn").addEventListener("click", addSupportManagerTag);
+  document.getElementById("addCustomChecklistBtn").addEventListener("click", addCustomChecklistItem);
 
   document.getElementById("updateDataBtn").addEventListener("click", updateData);
   document.getElementById("downloadExcelBtn").addEventListener("click", downloadExcel);
+
+  document.getElementById("weeklyApplyDateBtn").addEventListener("click", applyWeeklyBaseDate);
 
   document.getElementById("currentUserSelect").addEventListener("change", (e) => {
     state.currentUserId = e.target.value;
@@ -325,7 +328,7 @@ function renderTimeline() {
     <div class="timeline-wrapper">
       <div class="timeline-grid mb-3">
         <div></div>
-        ${Array.from({ length: 12 }, (_, i) => `<div class="timeline-month">${i + 1}월</div>`).join("")}
+        ${Array.from({ length: 12 }, (_, i) => `<button type="button" class="timeline-month timeline-month-btn" onclick="openWeeklyLayer(${i + 1})">${i + 1}월</button>`).join("")}
       </div>
       <div class="space-y-3">
   `;
@@ -624,6 +627,261 @@ function renderLogs() {
     </div>
   `;
 }
+
+
+// ---------------------------------------------------------
+// 월 클릭 주간 프로젝트 레이어
+// ---------------------------------------------------------
+window.openWeeklyLayer = function(month) {
+  state.weeklyLayerMonth = month;
+
+  const baseDate = getDefaultMonthDate(2026, month);
+  const sunday = getSundayOfWeek(baseDate);
+
+  state.weeklyLayerBaseDate = sunday;
+  document.getElementById("weeklyBaseDate").value = toDateInputValue(sunday);
+
+  renderWeeklyLayer();
+  openModal("weeklyLayerModal");
+};
+
+function applyWeeklyBaseDate() {
+  const value = document.getElementById("weeklyBaseDate").value;
+  if (!value) {
+    alert("기준일을 선택해주세요.");
+    return;
+  }
+
+  const selectedDate = new Date(value + "T00:00:00");
+  const sunday = getSundayOfWeek(selectedDate);
+
+  state.weeklyLayerBaseDate = sunday;
+  document.getElementById("weeklyBaseDate").value = toDateInputValue(sunday);
+
+  renderWeeklyLayer();
+}
+
+function renderWeeklyLayer() {
+  const month = state.weeklyLayerMonth;
+  const baseDate = state.weeklyLayerBaseDate || getSundayOfWeek(getDefaultMonthDate(2026, month));
+  const content = document.getElementById("weeklyLayerContent");
+
+  document.getElementById("weeklyLayerTitle").innerHTML =
+    `<i class="fa-solid fa-calendar-week text-amber-400 mr-2"></i>2026년 ${month}월 주간 프로젝트`;
+
+  const weeks = buildMonthWeeks(baseDate, month);
+  const events = collectTimelineEventsForMonth(month);
+
+  if (!events.length) {
+    content.innerHTML = `
+      <div class="weekly-empty">
+        <i class="fa-solid fa-calendar-xmark"></i>
+        <div>${month}월에 표시할 프로젝트 또는 차수가 없습니다.</div>
+      </div>
+    `;
+    return;
+  }
+
+  content.innerHTML = `
+    <div class="weekly-summary-row">
+      <div>
+        <b>${month}월 전체 일정</b>
+        <span>총 ${events.length}개 프로젝트/차수</span>
+      </div>
+      <div class="weekly-help">
+        차수 일정이 있으면 차수 기준, 차수가 없으면 과정 기간 기준으로 표시됩니다.
+      </div>
+    </div>
+
+    <div class="weekly-grid">
+      ${weeks.map((week, index) => {
+        const weekEvents = events.filter((event) => rangesOverlap(event.startDate, event.endDate, week.start, week.end));
+
+        return `
+          <section class="weekly-card">
+            <div class="weekly-card-head">
+              <div>
+                <div class="weekly-title">${index + 1}주차</div>
+                <div class="weekly-range">${formatWeekRange(week.start, week.end)}</div>
+              </div>
+              <span class="weekly-count">${weekEvents.length}</span>
+            </div>
+
+            <div class="weekly-events">
+              ${
+                weekEvents.length
+                  ? weekEvents.map(renderWeeklyEvent).join("")
+                  : `<div class="weekly-no-event">해당 주간 일정 없음</div>`
+              }
+            </div>
+          </section>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+function renderWeeklyEvent(event) {
+  return `
+    <div class="weekly-event" onclick="openCourseModalById('${event.courseId}')">
+      <div class="weekly-event-top">
+        <span class="weekly-type ${event.type === "round" ? "type-round" : "type-course"}">
+          ${event.type === "round" ? "차수" : "과정"}
+        </span>
+        ${statusBadge(event.status)}
+      </div>
+
+      <div class="weekly-event-title">${escapeHtml(event.title)}</div>
+      <div class="weekly-event-meta">
+        <i class="fa-solid fa-calendar-day"></i>
+        ${formatShortDate(event.startDate)} ~ ${formatShortDate(event.endDate)}
+      </div>
+      <div class="weekly-event-meta">
+        <i class="fa-solid fa-user"></i>
+        PM ${escapeHtml(getMemberName(event.pmId) || "-")}
+      </div>
+      ${
+        event.place
+          ? `<div class="weekly-event-meta"><i class="fa-solid fa-location-dot"></i>${escapeHtml(event.place)}</div>`
+          : ""
+      }
+    </div>
+  `;
+}
+
+function collectTimelineEventsForMonth(month) {
+  const courses = getFilteredCourses();
+  const events = [];
+
+  courses.forEach((course) => {
+    const activeRounds = state.rounds
+      .filter((round) => round.course_id === course.id)
+      .filter((round) => round.start_date_ymd || round.end_date_ymd);
+
+    if (activeRounds.length) {
+      activeRounds.forEach((round) => {
+        const startDate = yymmddToDate(round.start_date_ymd || round.end_date_ymd);
+        const endDate = yymmddToDate(round.end_date_ymd || round.start_date_ymd);
+
+        if (!startDate || !endDate) return;
+        if (!dateRangeTouchesMonth(startDate, endDate, month)) return;
+
+        events.push({
+          type: "round",
+          courseId: course.id,
+          roundId: round.id,
+          title: `${course.course_name} · ${round.round_no}차 ${round.round_name || ""}`,
+          startDate,
+          endDate,
+          status: round.status || course.status,
+          pmId: course.main_manager_id,
+          place: round.venue || course.location_detail || course.region || "",
+          updatedAt: round.updated_at || course.updated_at || course.created_at,
+        });
+      });
+    } else {
+      const startDate = yymmddToDate(course.start_date_ymd);
+      const endDate = yymmddToDate(course.end_date_ymd || course.start_date_ymd);
+
+      if (!startDate || !endDate) return;
+      if (!dateRangeTouchesMonth(startDate, endDate, month)) return;
+
+      events.push({
+        type: "course",
+        courseId: course.id,
+        roundId: null,
+        title: course.course_name,
+        startDate,
+        endDate,
+        status: course.status,
+        pmId: course.main_manager_id,
+        place: course.location_detail || course.region || "",
+        updatedAt: course.updated_at || course.created_at,
+      });
+    }
+  });
+
+  return events.sort((a, b) => {
+    const dateDiff = a.startDate - b.startDate;
+    if (dateDiff !== 0) return dateDiff;
+    return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+  });
+}
+
+function buildMonthWeeks(baseSunday, month) {
+  const weeks = [];
+  let cursor = new Date(baseSunday);
+
+  for (let i = 0; i < 6; i++) {
+    const start = new Date(cursor);
+    const end = addDays(start, 6);
+
+    if (i > 0 && start.getMonth() + 1 !== month && end.getMonth() + 1 !== month) {
+      break;
+    }
+
+    weeks.push({ start, end });
+    cursor = addDays(cursor, 7);
+  }
+
+  return weeks;
+}
+
+function getDefaultMonthDate(year, month) {
+  return new Date(year, month - 1, 1);
+}
+
+function getSundayOfWeek(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function rangesOverlap(startA, endA, startB, endB) {
+  return startA <= endB && endA >= startB;
+}
+
+function dateRangeTouchesMonth(startDate, endDate, month) {
+  const year = 2026;
+  const monthStart = new Date(year, month - 1, 1);
+  const monthEnd = new Date(year, month, 0);
+  return rangesOverlap(startDate, endDate, monthStart, monthEnd);
+}
+
+function yymmddToDate(value) {
+  if (!value || !/^\d{6}$/.test(value)) return null;
+
+  const yy = Number(value.slice(0, 2));
+  const mm = Number(value.slice(2, 4));
+  const dd = Number(value.slice(4, 6));
+
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+
+  return new Date(2000 + yy, mm - 1, dd);
+}
+
+function toDateInputValue(date) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function formatShortDate(date) {
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+}
+
+function formatWeekRange(start, end) {
+  return `${formatShortDate(start)}(일) ~ ${formatShortDate(end)}(토)`;
+}
+
 
 // ---------------------------------------------------------
 // 과정 등록/수정
@@ -1149,7 +1407,7 @@ async function submitCompleteRound(event) {
 // 체크리스트
 // ---------------------------------------------------------
 async function ensureChecklistStatuses(courseId, roundId = null, scope = "course") {
-  const usableItems = getChecklistItemsByScope(scope);
+  const usableItems = getChecklistItemsByScope(scope, courseId, roundId);
 
   const existingItemIds = state.checklistStatuses
     .filter((s) => s.course_id === courseId && normalizeId(s.round_id) === normalizeId(roundId))
@@ -1177,7 +1435,7 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const items = getChecklistItemsByScope(scope);
+  const items = getChecklistItemsByScope(scope, courseId, roundId);
 
   const rows = items.map((item) => {
     const status = state.checklistStatuses.find(
@@ -1191,18 +1449,20 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
       item,
       status,
       isDone: !!status?.is_done,
+      isHidden: !!status?.is_hidden,
+      checkedAt: status?.is_done ? status?.updated_at : null,
     };
-  });
+  }).filter((row) => !row.isHidden);
 
   const totalCount = rows.length;
   const doneCount = rows.filter((row) => row.isDone).length;
   const percent = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
 
-  const title = scope === "round" ? "차수 운영 체크리스트" : "과정 공통 체크리스트";
+  const title = scope === "round" ? "차수 운영 체크리스트" : "프로젝트 체크리스트";
   const guideText =
     scope === "round"
-      ? "해당 차수 운영에 필요한 준비·운영·마무리 항목입니다."
-      : "과정 전체 기준으로 관리해야 하는 공통 실무 항목입니다.";
+      ? "해당 차수에만 적용되는 운영 체크리스트입니다. 필요한 항목을 직접 추가·숨김 처리할 수 있습니다."
+      : "이 프로젝트에만 적용되는 체크리스트입니다. 기본 항목을 바탕으로 항목을 직접 추가·숨김 처리할 수 있습니다.";
 
   container.innerHTML = `
     <div class="checklist-panel">
@@ -1212,9 +1472,16 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
           <div class="checklist-guide">${guideText}</div>
         </div>
 
-        <div class="checklist-score">
-          <strong>${doneCount}</strong>
-          <span>/ ${totalCount}</span>
+        <div class="checklist-actions">
+          <button type="button" class="checklist-edit-btn" onclick="openChecklistEditModal('${courseId}', '${roundId || ""}', '${scope}', '${containerId}')">
+            <i class="fa-solid fa-pen-to-square"></i>
+            체크리스트 수정하기
+          </button>
+
+          <div class="checklist-score">
+            <strong>${doneCount}</strong>
+            <span>/ ${totalCount}</span>
+          </div>
         </div>
       </div>
 
@@ -1230,7 +1497,7 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
       <div class="checklist-list">
         ${
           rows.length
-            ? rows.map(({ item, isDone }) => `
+            ? rows.map(({ item, isDone, checkedAt }) => `
               <label class="checklist-card ${isDone ? "is-done" : ""}">
                 <input
                   type="checkbox"
@@ -1243,8 +1510,16 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
                 </span>
 
                 <span class="checklist-content">
-                  <span class="checklist-code">${escapeHtml(item.code)}</span>
+                  <span class="checklist-code">
+                    ${escapeHtml(item.code || (item.is_custom ? "CUSTOM" : ""))}
+                    ${item.is_custom ? `<em class="custom-mark">직접추가</em>` : ""}
+                  </span>
                   <span class="checklist-name">${escapeHtml(item.title)}</span>
+                  ${
+                    checkedAt
+                      ? `<span class="checklist-date">체크일 ${escapeHtml(formatTinyDate(checkedAt))}</span>`
+                      : `<span class="checklist-date muted">미체크</span>`
+                  }
                 </span>
 
                 <span class="checklist-state">
@@ -1252,14 +1527,14 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
                 </span>
               </label>
             `).join("")
-            : `<div class="checklist-empty">등록된 체크리스트 항목이 없습니다.</div>`
+            : `<div class="checklist-empty">등록된 체크리스트 항목이 없습니다. [체크리스트 수정하기]로 항목을 추가해보세요.</div>`
         }
       </div>
     </div>
   `;
 }
 
-window.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, containerId, scope) {
+window.toggleChecklistwindow.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, containerId, scope) {
   const roundId = roundIdRaw || null;
 
   try {
@@ -1277,6 +1552,7 @@ window.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, c
         .from("checklist_statuses")
         .update({
           is_done: checked,
+          is_hidden: false,
           updated_by: nullIfEmpty(state.currentUserId),
         })
         .eq("id", existing.id)
@@ -1290,6 +1566,7 @@ window.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, c
           round_id: roundId,
           checklist_item_id: itemId,
           is_done: checked,
+          is_hidden: false,
           updated_by: nullIfEmpty(state.currentUserId),
         })
         .select()
@@ -1313,13 +1590,264 @@ window.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, c
   }
 };
 
-function getChecklistItemsByScope(scope) {
+function getChecklistItemsByScope(scope, courseId = null, roundId = null) {
   return state.checklistItems.filter((item) => {
-    if (scope === "course") return item.scope === "course" || item.scope === "both" || !item.scope;
-    if (scope === "round") return item.scope === "round" || item.scope === "both";
-    return true;
+    const itemScopeMatched =
+      scope === "course"
+        ? item.scope === "course" || item.scope === "both" || !item.scope
+        : item.scope === "round" || item.scope === "both";
+
+    if (!itemScopeMatched) return false;
+
+    // 기본 체크리스트: 모든 프로젝트/차수에 공통 표시
+    if (!item.is_custom && !item.course_id && !item.round_id) return true;
+
+    // 커스텀 체크리스트: 해당 프로젝트 또는 해당 차수에만 표시
+    if (item.is_custom) {
+      if (scope === "course") {
+        return item.course_id === courseId && !item.round_id;
+      }
+
+      if (scope === "round") {
+        return item.course_id === courseId && item.round_id === roundId;
+      }
+    }
+
+    return false;
   });
 }
+
+
+// ---------------------------------------------------------
+// 체크리스트 항목 편집
+// ---------------------------------------------------------
+window.openChecklistEditModal = async function(courseId, roundIdRaw, scope, containerId) {
+  const roundId = roundIdRaw || null;
+
+  document.getElementById("checklistEditCourseId").value = courseId;
+  document.getElementById("checklistEditRoundId").value = roundId || "";
+  document.getElementById("checklistEditScope").value = scope;
+  document.getElementById("newChecklistTitle").value = "";
+
+  const course = getCourseById(courseId);
+  const round = roundId ? state.rounds.find((r) => r.id === roundId) : null;
+
+  document.getElementById("checklistEditInfo").textContent =
+    scope === "round"
+      ? `${course?.course_name || ""} · ${round?.round_no || ""}차 ${round?.round_name || ""}에만 적용됩니다.`
+      : `${course?.course_name || ""} 프로젝트에만 적용됩니다.`;
+
+  await ensureChecklistStatuses(courseId, roundId, scope);
+  renderChecklistEditList(courseId, roundId, scope, containerId);
+  openModal("checklistEditModal");
+};
+
+function renderChecklistEditList(courseId, roundId = null, scope = "course", containerId = "") {
+  const container = document.getElementById("checklistEditList");
+  if (!container) return;
+
+  const items = getChecklistItemsByScope(scope, courseId, roundId);
+
+  const rows = items.map((item) => {
+    const status = state.checklistStatuses.find(
+      (s) =>
+        s.course_id === courseId &&
+        normalizeId(s.round_id) === normalizeId(roundId) &&
+        s.checklist_item_id === item.id
+    );
+
+    return {
+      item,
+      status,
+      isHidden: !!status?.is_hidden,
+    };
+  });
+
+  if (!rows.length) {
+    container.innerHTML = `<div class="checklist-edit-empty">등록된 항목이 없습니다.</div>`;
+    return;
+  }
+
+  container.innerHTML = rows.map(({ item, status, isHidden }) => `
+    <div class="checklist-edit-row ${isHidden ? "is-hidden" : ""}">
+      <div>
+        <div class="checklist-edit-title">
+          ${escapeHtml(item.title)}
+          ${item.is_custom ? `<span class="custom-mark">직접추가</span>` : `<span class="default-mark">기본</span>`}
+        </div>
+        <div class="checklist-edit-meta">
+          ${escapeHtml(item.code || "CUSTOM")} · ${isHidden ? "숨김 처리됨" : "표시 중"}
+        </div>
+      </div>
+
+      <div class="checklist-edit-actions">
+        ${
+          isHidden
+            ? `<button type="button" class="btn-secondary" onclick="restoreChecklistItem('${courseId}', '${roundId || ""}', '${item.id}', '${scope}', '${containerId}')">복원</button>`
+            : `<button type="button" class="btn-danger" onclick="hideChecklistItem('${courseId}', '${roundId || ""}', '${item.id}', '${scope}', '${containerId}')">삭제</button>`
+        }
+      </div>
+    </div>
+  `).join("");
+}
+
+async function addCustomChecklistItem() {
+  const courseId = document.getElementById("checklistEditCourseId").value;
+  const roundId = document.getElementById("checklistEditRoundId").value || null;
+  const scope = document.getElementById("checklistEditScope").value || "course";
+  const title = document.getElementById("newChecklistTitle").value.trim();
+
+  if (!title) {
+    alert("추가할 체크리스트 항목명을 입력해주세요.");
+    return;
+  }
+
+  try {
+    const payload = {
+      code: "CUSTOM",
+      title,
+      scope,
+      is_custom: true,
+      course_id: courseId,
+      round_id: scope === "round" ? roundId : null,
+      sort_order: 999,
+      is_active: true,
+    };
+
+    const itemRes = await db.from("checklist_items").insert(payload).select().single();
+    throwIfError(itemRes);
+
+    const statusRes = await db.from("checklist_statuses").insert({
+      course_id: courseId,
+      round_id: scope === "round" ? roundId : null,
+      checklist_item_id: itemRes.data.id,
+      is_done: false,
+      is_hidden: false,
+      updated_by: nullIfEmpty(state.currentUserId),
+    }).select().single();
+
+    throwIfError(statusRes);
+
+    await insertLog({
+      target_type: "체크리스트",
+      course_id: courseId,
+      round_id: scope === "round" ? roundId : null,
+      action_type: "신규등록",
+      change_summary: `커스텀 체크리스트 추가: ${title}`,
+    });
+
+    document.getElementById("newChecklistTitle").value = "";
+    await loadAll();
+
+    renderChecklistEditList(courseId, roundId, scope);
+    renderChecklist(courseId, roundId, scope === "round" ? "roundChecklistArea" : "courseChecklistArea", scope);
+
+    alert("체크리스트 항목이 추가되었습니다.");
+  } catch (error) {
+    alert("체크리스트 항목 추가 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+}
+
+window.hideChecklistItem = async function(courseId, roundIdRaw, itemId, scope, containerId) {
+  const roundId = roundIdRaw || null;
+
+  if (!confirm("이 항목을 현재 프로젝트/차수에서 삭제할까요?\n기본 항목은 다른 프로젝트에는 영향을 주지 않고 현재 화면에서만 숨김 처리됩니다.")) {
+    return;
+  }
+
+  try {
+    const item = state.checklistItems.find((i) => i.id === itemId);
+
+    if (item?.is_custom) {
+      const response = await db
+        .from("checklist_items")
+        .update({ is_active: false })
+        .eq("id", itemId);
+      throwIfError(response);
+    } else {
+      let existing = state.checklistStatuses.find(
+        (s) =>
+          s.course_id === courseId &&
+          normalizeId(s.round_id) === normalizeId(roundId) &&
+          s.checklist_item_id === itemId
+      );
+
+      if (!existing) {
+        const insertRes = await db.from("checklist_statuses").insert({
+          course_id: courseId,
+          round_id: roundId,
+          checklist_item_id: itemId,
+          is_done: false,
+          is_hidden: true,
+          updated_by: nullIfEmpty(state.currentUserId),
+        }).select().single();
+        throwIfError(insertRes);
+      } else {
+        const updateRes = await db
+          .from("checklist_statuses")
+          .update({
+            is_hidden: true,
+            updated_by: nullIfEmpty(state.currentUserId),
+          })
+          .eq("id", existing.id);
+        throwIfError(updateRes);
+      }
+    }
+
+    await insertLog({
+      target_type: "체크리스트",
+      course_id,
+      round_id,
+      action_type: "숨김처리",
+      change_summary: `체크리스트 항목 삭제/숨김 처리`,
+    });
+
+    await loadAll();
+    renderChecklistEditList(courseId, roundId, scope, containerId);
+    renderChecklist(courseId, roundId, containerId || (scope === "round" ? "roundChecklistArea" : "courseChecklistArea"), scope);
+  } catch (error) {
+    alert("체크리스트 항목 삭제 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
+window.restoreChecklistItem = async function(courseId, roundIdRaw, itemId, scope, containerId) {
+  const roundId = roundIdRaw || null;
+
+  try {
+    const existing = state.checklistStatuses.find(
+      (s) =>
+        s.course_id === courseId &&
+        normalizeId(s.round_id) === normalizeId(roundId) &&
+        s.checklist_item_id === itemId
+    );
+
+    if (existing) {
+      const response = await db
+        .from("checklist_statuses")
+        .update({
+          is_hidden: false,
+          updated_by: nullIfEmpty(state.currentUserId),
+        })
+        .eq("id", existing.id);
+      throwIfError(response);
+    }
+
+    await insertLog({
+      target_type: "체크리스트",
+      course_id,
+      round_id,
+      action_type: "복원",
+      change_summary: `체크리스트 항목 복원`,
+    });
+
+    await loadAll();
+    renderChecklistEditList(courseId, roundId, scope, containerId);
+    renderChecklist(courseId, roundId, containerId || (scope === "round" ? "roundChecklistArea" : "courseChecklistArea"), scope);
+  } catch (error) {
+    alert("체크리스트 항목 복원 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
 
 // ---------------------------------------------------------
 // 담당자 관리
