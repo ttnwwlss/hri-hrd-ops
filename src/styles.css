@@ -1277,3 +1277,362 @@ body {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 }
+
+
+/* =========================================================
+   체크리스트 수정 모달 / 직접 추가 항목
+   ========================================================= */
+
+.checklist-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.checklist-edit-btn {
+  border-radius: 999px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.16s ease;
+  white-space: nowrap;
+}
+
+.checklist-edit-btn:hover {
+  background: #dbeafe;
+  transform: translateY(-1px);
+}
+
+.custom-mark,
+.default-mark {
+  margin-left: 5px;
+  border-radius: 999px;
+  padding: 2px 6px;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.custom-mark {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.default-mark {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+.checklist-edit-add-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.checklist-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checklist-edit-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.checklist-edit-row.is-hidden {
+  background: #f8fafc;
+  opacity: 0.72;
+}
+
+.checklist-edit-title {
+  font-size: 14px;
+  font-weight: 900;
+  color: #334155;
+}
+
+.checklist-edit-meta {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.checklist-edit-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.checklist-edit-empty {
+  text-align: center;
+  padding: 26px 8px;
+  border: 2px dashed #e2e8f0;
+  border-radius: 14px;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+@media (max-width: 720px) {
+  .checklist-summary {
+    flex-direction: column;
+  }
+
+  .checklist-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .checklist-edit-add-row,
+  .checklist-edit-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   월 클릭 주간 프로젝트 레이어
+   ========================================================= */
+
+.timeline-month-btn {
+  border: 0;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.timeline-month-btn:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.weekly-control-panel {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border-radius: 17px;
+  border: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  margin-bottom: 16px;
+}
+
+.weekly-control-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: #0f2742;
+}
+
+.weekly-control-desc {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.weekly-date-control {
+  display: grid;
+  grid-template-columns: 170px auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.weekly-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  color: #334155;
+}
+
+.weekly-summary-row b {
+  display: block;
+  font-size: 15px;
+  color: #0f2742;
+}
+
+.weekly-summary-row span,
+.weekly-help {
+  font-size: 12px;
+  font-weight: 800;
+  color: #94a3b8;
+}
+
+.weekly-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.weekly-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 17px;
+  padding: 14px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(15, 39, 66, 0.06);
+}
+
+.weekly-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 11px;
+}
+
+.weekly-title {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f2742;
+}
+
+.weekly-range {
+  font-size: 12px;
+  font-weight: 800;
+  color: #64748b;
+  margin-top: 3px;
+}
+
+.weekly-count {
+  min-width: 28px;
+  height: 24px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid #bfdbfe;
+}
+
+.weekly-events {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.weekly-event {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 11px;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.weekly-event:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  transform: translateY(-1px);
+}
+
+.weekly-event-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+}
+
+.weekly-type {
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.type-round {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.type-course {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.weekly-event-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.35;
+  margin-bottom: 7px;
+}
+
+.weekly-event-meta {
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+}
+
+.weekly-event-meta i {
+  width: 12px;
+  color: #94a3b8;
+}
+
+.weekly-no-event {
+  border: 2px dashed #e2e8f0;
+  border-radius: 14px;
+  padding: 22px 8px;
+  text-align: center;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.weekly-empty {
+  min-height: 240px;
+  border: 2px dashed #e2e8f0;
+  border-radius: 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.weekly-empty i {
+  font-size: 28px;
+}
+
+@media (max-width: 900px) {
+  .weekly-control-panel,
+  .weekly-summary-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .weekly-date-control {
+    grid-template-columns: 1fr;
+  }
+
+  .weekly-grid {
+    grid-template-columns: 1fr;
+  }
+}
