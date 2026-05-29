@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -9,7 +10,11 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://kit.fontawesome.com/4d1b7b6e4f.js" crossorigin="anonymous"></script>
+  <link rel="icon" href="data:," />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
 
   <link rel="stylesheet" href="./src/styles.css" />
 </head>
@@ -426,6 +431,19 @@
             <span>비고</span>
             <input id="roundRemarks" class="input" />
           </label>
+
+          <label class="form-field md:col-span-2 round-field-manager-block">
+            <span class="field-label">차수별 현장운영자</span>
+            <div class="support-select-row">
+              <select id="roundFieldManagerSelect" class="input manager-field">
+                <option value="">차수별 현장운영자 선택</option>
+              </select>
+              <button type="button" class="btn-secondary" onclick="addRoundFieldManagerTag()">
+                추가
+              </button>
+            </div>
+            <div id="roundFieldManagerTags" class="support-tags"></div>
+          </label>
         </div>
 
         <label class="form-field mt-4">
@@ -440,13 +458,23 @@
           </label>
 
           <label class="form-field">
-            <span>전반만족도</span>
-            <input id="satisfaction" class="input" type="number" step="0.1" min="0" max="5" />
+            <span>교육인원</span>
+            <input id="participantCount" class="input" type="number" min="0" />
           </label>
 
           <label class="form-field">
-            <span>교육인원</span>
-            <input id="participantCount" class="input" type="number" min="0" />
+            <span>전반 만족도</span>
+            <input id="satisfaction" class="input" type="number" step="0.01" min="0" max="5" placeholder="예: 4.85" />
+          </label>
+
+          <label class="form-field">
+            <span>강사 만족도</span>
+            <input id="instructorSatisfaction" class="input" type="number" step="0.01" min="0" max="5" placeholder="예: 4.80" />
+          </label>
+
+          <label class="form-field">
+            <span>운영 만족도</span>
+            <input id="operationSatisfaction" class="input" type="number" step="0.01" min="0" max="5" placeholder="예: 4.75" />
           </label>
         </div>
 
@@ -491,17 +519,17 @@
 
           <label class="form-field">
             <span>전반 만족도 *</span>
-            <input id="completeSatisfaction" class="input" type="number" step="0.1" min="0" max="5" required />
+            <input id="completeSatisfaction" class="input" type="number" step="0.01" min="0" max="5" required />
           </label>
 
           <label class="form-field">
             <span>강사 만족도</span>
-            <input id="completeInstructorSatisfaction" class="input" type="number" step="0.1" min="0" max="5" />
+            <input id="completeInstructorSatisfaction" class="input" type="number" step="0.01" min="0" max="5" />
           </label>
 
           <label class="form-field">
             <span>운영 만족도</span>
-            <input id="completeOperationSatisfaction" class="input" type="number" step="0.1" min="0" max="5" />
+            <input id="completeOperationSatisfaction" class="input" type="number" step="0.01" min="0" max="5" />
           </label>
         </div>
 
