@@ -1798,8 +1798,7 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
     </div>
   `;
 }
-
-window.toggleChecklistwindow.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, containerId, scope) {
+window.openChecklistEditModal = async function(courseId, roundIdRaw, itemId, checked, containerId, scope) {
   const roundId = roundIdRaw || null;
 
   try {
@@ -2581,6 +2580,19 @@ function formatDateTime(value) {
   if (!value) return "-";
   const d = new Date(value);
   return d.toLocaleString("ko-KR");
+}
+
+function formatTinyDate(value) {
+  if (!value) return "";
+  const d = new Date(value);
+
+  if (Number.isNaN(d.getTime())) return "";
+
+  const yy = String(d.getFullYear()).slice(2);
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+
+  return `${yy}.${mm}.${dd}`;
 }
 
 function nullIfEmpty(value) {
