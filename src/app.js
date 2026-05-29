@@ -1799,7 +1799,7 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
   `;
 }
 
-window.toggleChecklistwindow.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, containerId, scope) {
+window.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, containerId, scope) {
   const roundId = roundIdRaw || null;
 
   try {
