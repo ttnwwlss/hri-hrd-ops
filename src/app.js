@@ -1700,13 +1700,19 @@ async function ensureChecklistStatuses(courseId, roundId = null, scope = "course
 
   if (!missing.length) return;
 
-  const rows = missing.map((item) => ({
-    course_id: courseId,
-    round_id: roundId,
-    checklist_item_id: item.id,
-    is_done: false,
-    updated_by: nullIfEmpty(state.currentUserId),
-  }));
+const baseOrder = state.checklistStatuses
+  .filter((s) => s.course_id === courseId && normalizeId(s.round_id) === normalizeId(roundId))
+  .reduce((max, s) => Math.max(max, Number(s.sort_order) || 0), 0);
+
+const rows = missing.map((item, index) => ({
+  course_id: courseId,
+  round_id: roundId,
+  checklist_item_id: item.id,
+  is_done: false,
+  is_hidden: false,
+  sort_order: baseOrder + index + 1,
+  updated_by: nullIfEmpty(state.currentUserId),
+}));
 
   const response = await db.from("checklist_statuses").insert(rows).select();
   throwIfError(response);
@@ -1735,8 +1741,16 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
       isHidden: !!status?.is_hidden,
       checkedAt: status?.is_done ? status?.updated_at : null,
     };
-  }).filter((row) => !row.isHidden);
+})
+.filter((row) => !row.isHidden)
+.sort((a, b) => {
+  const orderA = Number(a.status?.sort_order ?? a.item.sort_order ?? 9999);
+  const orderB = Number(b.status?.sort_order ?? b.item.sort_order ?? 9999);
 
+  if (orderA !== orderB) return orderA - orderB;
+
+  return String(a.item.title || "").localeCompare(String(b.item.title || ""));
+});
   const totalCount = rows.length;
   const doneCount = rows.filter((row) => row.isDone).length;
   const percent = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
@@ -1948,7 +1962,11 @@ function renderChecklistEditList(courseId, roundId = null, scope = "course", con
       item,
       status,
       isHidden: !!status?.is_hidden,
+      sortOrder: Number(status?.sort_order ?? item.sort_order ?? 9999),
     };
+  }).sort((a, b) => {
+    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+    return String(a.item.title || "").localeCompare(String(b.item.title || ""));
   });
 
   if (!rows.length) {
@@ -1956,7 +1974,7 @@ function renderChecklistEditList(courseId, roundId = null, scope = "course", con
     return;
   }
 
-  container.innerHTML = rows.map(({ item, status, isHidden }) => `
+  container.innerHTML = rows.map(({ item, status, isHidden }, index) => `
     <div class="checklist-edit-row ${isHidden ? "is-hidden" : ""}">
       <div>
         <div class="checklist-edit-title">
@@ -1969,6 +1987,20 @@ function renderChecklistEditList(courseId, roundId = null, scope = "course", con
       </div>
 
       <div class="checklist-edit-actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          ${index === 0 ? "disabled" : ""}
+          onclick="moveChecklistItem('${courseId}', '${roundId || ""}', '${item.id}', -1, '${scope}', '${containerId}')"
+        >↑</button>
+
+        <button
+          type="button"
+          class="btn-secondary"
+          ${index === rows.length - 1 ? "disabled" : ""}
+          onclick="moveChecklistItem('${courseId}', '${roundId || ""}', '${item.id}', 1, '${scope}', '${containerId}')"
+        >↓</button>
+
         ${
           isHidden
             ? `<button type="button" class="btn-secondary" onclick="restoreChecklistItem('${courseId}', '${roundId || ""}', '${item.id}', '${scope}', '${containerId}')">복원</button>`
@@ -1978,7 +2010,6 @@ function renderChecklistEditList(courseId, roundId = null, scope = "course", con
     </div>
   `).join("");
 }
-
 async function addCustomChecklistItem() {
   const courseId = document.getElementById("checklistEditCourseId").value;
   const roundId = document.getElementById("checklistEditRoundId").value || null;
@@ -2011,6 +2042,7 @@ async function addCustomChecklistItem() {
       checklist_item_id: itemRes.data.id,
       is_done: false,
       is_hidden: false,
+      sort_order: getNextChecklistSortOrder(courseId, roundId),
       updated_by: nullIfEmpty(state.currentUserId),
     }).select().single();
 
@@ -2136,7 +2168,29 @@ window.restoreChecklistItem = async function(courseId, roundIdRaw, itemId, scope
   }
 };
 
+function getNextChecklistSortOrder(courseId, roundId = null) {
+  const relatedStatuses = state.checklistStatuses.filter(
+    (s) => s.course_id === courseId && normalizeId(s.round_id) === normalizeId(roundId)
+  );
 
+  const maxStatusOrder = relatedStatuses.reduce(
+    (max, s) => Math.max(max, Number(s.sort_order) || 0),
+    0
+  );
+
+  const relatedItems = state.checklistItems.filter(
+    (item) =>
+      item.course_id === courseId &&
+      normalizeId(item.round_id) === normalizeId(roundId)
+  );
+
+  const maxItemOrder = relatedItems.reduce(
+    (max, item) => Math.max(max, Number(item.sort_order) || 0),
+    0
+  );
+
+  return Math.max(maxStatusOrder, maxItemOrder) + 1;
+}
 // ---------------------------------------------------------
 // 담당자 관리
 // ---------------------------------------------------------
