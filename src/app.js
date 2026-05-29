@@ -1806,11 +1806,7 @@ function renderChecklist(courseId, roundId = null, containerId, scope = "course"
                   <i class="fa-solid fa-check"></i>
                 </span>
 
-                <span class="checklist-content">
-                  <span class="checklist-code">
-                    ${escapeHtml(item.code || (item.is_custom ? "CUSTOM" : ""))}
-                    ${item.is_custom ? `<em class="custom-mark">직접추가</em>` : ""}
-                  </span>
+              
                   <span class="checklist-name">${escapeHtml(item.title)}</span>
                   ${
                     checkedAt
@@ -1981,9 +1977,9 @@ function renderChecklistEditList(courseId, roundId = null, scope = "course", con
           ${escapeHtml(item.title)}
           ${item.is_custom ? `<span class="custom-mark">직접추가</span>` : `<span class="default-mark">기본</span>`}
         </div>
-        <div class="checklist-edit-meta">
-          ${escapeHtml(item.code || "CUSTOM")} · ${isHidden ? "숨김 처리됨" : "표시 중"}
-        </div>
+<div class="checklist-edit-meta">
+  ${isHidden ? "숨김 처리됨" : "표시 중"}
+</div>
       </div>
 
       <div class="checklist-edit-actions">
