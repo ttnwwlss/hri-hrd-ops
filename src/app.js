@@ -1,6 +1,6 @@
 // =========================================================
 // HRI HRD사업팀 과정운영 관리 앱
-// 1단계 MVP
+// 최종 통합본
 // =========================================================
 
 const STATUS_LABELS = {
@@ -29,6 +29,7 @@ let state = {
   currentUserId: "",
   currentView: "timeline",
   selectedCourseId: "",
+  selectedRoundId: "",
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -38,31 +39,38 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 // ---------------------------------------------------------
-// Event Binding
+// 이벤트 연결
 // ---------------------------------------------------------
 function bindEvents() {
   document.getElementById("openCourseModalBtn").addEventListener("click", () => openCourseModal());
+
   document.getElementById("courseForm").addEventListener("submit", saveCourse);
   document.getElementById("roundForm").addEventListener("submit", saveRound);
+  document.getElementById("completeForm").addEventListener("submit", submitCompleteRound);
 
   document.getElementById("hideCourseBtn").addEventListener("click", hideCurrentCourse);
   document.getElementById("hideRoundBtn").addEventListener("click", hideCurrentRound);
-
-  document.getElementById("openRoundModalBtn").addEventListener("click", () => openRoundModal());
-  document.getElementById("editCourseFromDetailBtn").addEventListener("click", () => {
-    const course = getCourseById(state.selectedCourseId);
-    closeModal("detailModal");
-    openCourseModal(course);
+  document.getElementById("completeRoundBtn").addEventListener("click", () => {
+    const roundId = document.getElementById("roundId").value;
+    openCompleteModal(roundId);
   });
 
+  document.getElementById("quickAddRoundBtn").addEventListener("click", quickAddRound);
   document.getElementById("roundStatus").addEventListener("change", toggleCompletedFields);
+
+  document.getElementById("openMemberModalBtn").addEventListener("click", () => {
+    renderMemberList();
+    openModal("memberModal");
+  });
+  document.getElementById("addMemberBtn").addEventListener("click", addMember);
+
+  document.getElementById("updateDataBtn").addEventListener("click", updateData);
+  document.getElementById("downloadExcelBtn").addEventListener("click", downloadExcel);
 
   document.getElementById("currentUserSelect").addEventListener("change", (e) => {
     state.currentUserId = e.target.value;
     localStorage.setItem("hri_current_user_id", state.currentUserId);
   });
-
-  document.getElementById("refreshStatusBtn").addEventListener("click", refreshStatuses);
 
   ["searchInput", "managerFilter", "statusFilter", "regionFilter"].forEach((id) => {
     document.getElementById(id).addEventListener("input", render);
@@ -92,7 +100,7 @@ function bindEvents() {
 }
 
 // ---------------------------------------------------------
-// Load Data
+// 데이터 로드
 // ---------------------------------------------------------
 async function loadAll() {
   try {
@@ -148,12 +156,13 @@ function throwIfError(response) {
 }
 
 // ---------------------------------------------------------
-// Static Selects
+// 셀렉트박스
 // ---------------------------------------------------------
 function fillStaticSelects() {
   fillStatusOptions(document.getElementById("statusFilter"), true);
   fillStatusOptions(document.getElementById("courseStatus"), false);
   fillStatusOptions(document.getElementById("roundStatus"), false);
+  fillStatusOptions(document.getElementById("quickRoundStatus"), false);
 
   fillRegionOptions(document.getElementById("regionFilter"), true);
   fillRegionOptions(document.getElementById("region"), false);
@@ -194,21 +203,21 @@ function fillMemberSelects() {
     const label =
       id === "currentUserSelect" ? "현재 사용자 선택" :
       id === "managerFilter" ? "담당자 전체" :
-      "선택 안 함";
+      "없음";
 
     select.innerHTML = `<option value="">${label}</option>`;
 
     state.members.forEach((member) => {
       const option = document.createElement("option");
       option.value = member.id;
-      option.textContent = `${member.name}${member.position ? " / " + member.position : ""}`;
+      option.textContent = `${member.name}${member.position ? " (" + member.position + ")" : ""}`;
       select.appendChild(option);
     });
   });
 }
 
 // ---------------------------------------------------------
-// Render
+// 렌더링
 // ---------------------------------------------------------
 function render() {
   renderStats();
@@ -220,6 +229,14 @@ function renderStats() {
   const rounds = state.rounds.filter((r) => courses.some((c) => c.id === r.course_id));
 
   const runningCourses = courses.filter((c) => ["ready", "running"].includes(c.status)).length;
+  const completedRounds = rounds.filter((r) => r.status === "completed");
+
+  const totalParticipants = completedRounds.reduce((sum, r) => sum + (Number(r.participant_count) || 0), 0);
+
+  const satisfactionRows = completedRounds.filter((r) => r.satisfaction !== null && r.satisfaction !== undefined);
+  const avgSatisfaction = satisfactionRows.length
+    ? satisfactionRows.reduce((sum, r) => sum + Number(r.satisfaction), 0) / satisfactionRows.length
+    : null;
 
   const activeMembers = state.members.length || 1;
   const managerAssignments = courses.reduce((sum, c) => {
@@ -234,12 +251,13 @@ function renderStats() {
   document.getElementById("statTotalCourses").textContent = courses.length;
   document.getElementById("statRunningCourses").textContent = runningCourses;
   document.getElementById("statTotalRounds").textContent = rounds.length;
+  document.getElementById("statTotalParticipants").textContent = totalParticipants;
+  document.getElementById("statAvgSatisfaction").textContent = avgSatisfaction === null ? "-" : avgSatisfaction.toFixed(2);
   document.getElementById("statAvgWorkload").textContent = (managerAssignments / activeMembers).toFixed(1);
 }
 
 function renderViews() {
-  const views = ["timeline", "kanban", "rr", "logs"];
-  views.forEach((view) => {
+  ["timeline", "kanban", "rr", "logs"].forEach((view) => {
     document.getElementById(`${view}View`).classList.toggle("hidden", state.currentView !== view);
   });
 
@@ -290,23 +308,23 @@ function renderTimeline() {
   }
 
   let html = `
-    <div class="bg-white rounded-xl shadow p-4 overflow-x-auto">
+    <div class="timeline-wrapper">
       <div class="timeline-grid mb-3">
         <div></div>
         ${Array.from({ length: 12 }, (_, i) => `<div class="timeline-month">${i + 1}월</div>`).join("")}
       </div>
-      <div class="space-y-3 min-w-[900px]">
+      <div class="space-y-3">
   `;
 
   courses.forEach((course) => {
-    const start = course.start_month || 1;
-    const end = course.end_month || start;
+    const start = getCourseStartMonth(course) || 1;
+    const end = getCourseEndMonth(course) || start;
 
-    html += `<div class="timeline-grid course-row cursor-pointer" onclick="openDetailModal('${course.id}')">`;
+    html += `<div class="timeline-grid cursor-pointer" onclick="openCourseModalById('${course.id}')">`;
     html += `
       <div class="timeline-name">
         ${escapeHtml(course.course_name)}
-        <div class="small-muted">${escapeHtml(course.client_name || "")}</div>
+        <div class="small-muted">${escapeHtml(course.client_name || "")} · ${statusText(course.status)}</div>
       </div>
     `;
 
@@ -338,7 +356,7 @@ function renderKanban() {
     html += `
       <div class="kanban-column">
         <div class="flex justify-between items-center mb-3">
-          <h3 class="font-extrabold text-slate-700">${STATUS_LABELS[status]}</h3>
+          <h3 class="font-black text-slate-700">${STATUS_LABELS[status]}</h3>
           <span class="text-xs bg-white rounded-full px-2 py-1">${list.length}</span>
         </div>
         <div class="space-y-3">
@@ -353,17 +371,16 @@ function renderKanban() {
 }
 
 function renderCourseMiniCard(course) {
-  const manager = getMemberName(course.main_manager_id);
   const roundCount = state.rounds.filter((r) => r.course_id === course.id).length;
 
   return `
-    <div class="course-card cursor-pointer" onclick="openDetailModal('${course.id}')">
+    <div class="course-card cursor-pointer" onclick="openCourseModalById('${course.id}')">
       <div class="flex justify-between gap-2 mb-2">
-        <h4 class="font-extrabold text-sm">${escapeHtml(course.course_name)}</h4>
+        <h4 class="font-black text-sm">${escapeHtml(course.course_name)}</h4>
         ${statusBadge(course.status)}
       </div>
       <div class="small-muted">${escapeHtml(course.client_name || "-")}</div>
-      <div class="small-muted mt-1">정담당: ${escapeHtml(manager || "-")}</div>
+      <div class="small-muted mt-1">정담당: ${escapeHtml(getMemberName(course.main_manager_id) || "-")}</div>
       <div class="small-muted mt-1">차수: ${roundCount}개 · ${escapeHtml(course.region || "미정")}</div>
     </div>
   `;
@@ -386,10 +403,10 @@ function renderRR() {
     });
 
     html += `
-      <div class="bg-white rounded-xl shadow p-4">
+      <div class="course-card">
         <div class="flex justify-between items-center mb-3">
           <div>
-            <h3 class="font-extrabold text-[#0f2742]">${escapeHtml(member.name)}</h3>
+            <h3 class="font-black text-[#0f2742]">${escapeHtml(member.name)}</h3>
             <p class="small-muted">${escapeHtml(member.position || "")}</p>
           </div>
           <div class="text-2xl font-black text-[#0f2742]">${assigned.length}</div>
@@ -397,7 +414,7 @@ function renderRR() {
 
         <div class="space-y-2">
           ${assigned.map((course) => `
-            <div class="border rounded-lg p-3 cursor-pointer hover:bg-slate-50" onclick="openDetailModal('${course.id}')">
+            <div class="border rounded-lg p-3 cursor-pointer hover:bg-slate-50" onclick="openCourseModalById('${course.id}')">
               <div class="font-bold text-sm">${escapeHtml(course.course_name)}</div>
               <div class="small-muted">${escapeHtml(getRoleLabel(course, member.id))} · ${STATUS_LABELS[course.status]}</div>
             </div>
@@ -420,8 +437,8 @@ function renderLogs() {
   }
 
   container.innerHTML = `
-    <div class="bg-white rounded-xl shadow p-4">
-      <h3 class="section-title">최근 수정이력 30개</h3>
+    <div class="course-card">
+      <h3 class="font-black text-[#0f2742] mb-4">최근 수정이력 30개</h3>
       <div class="space-y-2">
         ${state.logs.map((log) => `
           <div class="border rounded-lg p-3">
@@ -439,21 +456,33 @@ function renderLogs() {
 }
 
 // ---------------------------------------------------------
-// Course Modal
+// 과정 등록/수정
 // ---------------------------------------------------------
-function openCourseModal(course = null) {
+window.openCourseModalById = async function(courseId) {
+  const course = getCourseById(courseId);
+  openCourseModal(course);
+};
+
+async function openCourseModal(course = null) {
   document.getElementById("courseForm").reset();
 
   const isEdit = !!course;
-  document.getElementById("courseModalTitle").textContent = isEdit ? "프로젝트 수정" : "신규 프로젝트 등록";
+  state.selectedCourseId = course?.id || "";
+
+  document.getElementById("courseModalTitle").innerHTML = isEdit
+    ? `<i class="fa-solid fa-pen-to-square text-amber-400 mr-2"></i>[수정] ${escapeHtml(course.course_name)}`
+    : `<i class="fa-solid fa-pen-to-square text-amber-400 mr-2"></i>신규 프로젝트 등록`;
+
   document.getElementById("hideCourseBtn").classList.toggle("hidden", !isEdit);
+  document.getElementById("courseInnerManageArea").classList.toggle("hidden", !isEdit);
+  document.getElementById("courseChecklistSection").classList.toggle("hidden", !isEdit);
 
   document.getElementById("courseId").value = course?.id || "";
   document.getElementById("courseName").value = course?.course_name || "";
   document.getElementById("clientName").value = course?.client_name || "";
   document.getElementById("targetAudience").value = course?.target_audience || "";
-  document.getElementById("startMonth").value = course?.start_month || "";
-  document.getElementById("endMonth").value = course?.end_month || "";
+  document.getElementById("startDateYmd").value = course?.start_date_ymd || "";
+  document.getElementById("endDateYmd").value = course?.end_date_ymd || "";
   document.getElementById("region").value = course?.region || "미정";
   document.getElementById("locationDetail").value = course?.location_detail || "";
   document.getElementById("mainManager").value = course?.main_manager_id || "";
@@ -464,20 +493,44 @@ function openCourseModal(course = null) {
   document.getElementById("expectedBudget").value = course?.expected_budget || "";
   document.getElementById("courseNotes").value = course?.notes || "";
 
+  if (isEdit) {
+    document.getElementById("quickRoundNo").value = getNextRoundNo(course.id);
+    document.getElementById("quickRoundStatus").value = "planning";
+    renderCourseModalRounds(course.id);
+    await ensureChecklistStatuses(course.id, null, "course");
+    renderChecklist(course.id, null, "courseChecklistArea", "course");
+  }
+
   openModal("courseModal");
 }
 
 async function saveCourse(event) {
   event.preventDefault();
 
+  const courseStartDate = document.getElementById("startDateYmd").value.trim();
+  const courseEndDate = document.getElementById("endDateYmd").value.trim();
+
+  if (courseStartDate && !/^\d{6}$/.test(courseStartDate)) {
+    alert("과정 시작일은 YYMMDD 6자리로 입력해주세요.\n예: 260704");
+    return;
+  }
+
+  if (courseEndDate && !/^\d{6}$/.test(courseEndDate)) {
+    alert("과정 종료일은 YYMMDD 6자리로 입력해주세요.\n예: 260705");
+    return;
+  }
+
   try {
     const id = document.getElementById("courseId").value;
+
     const payload = {
       course_name: document.getElementById("courseName").value.trim(),
       client_name: document.getElementById("clientName").value.trim() || null,
       target_audience: document.getElementById("targetAudience").value.trim() || null,
-      start_month: toNumberOrNull(document.getElementById("startMonth").value),
-      end_month: toNumberOrNull(document.getElementById("endMonth").value),
+      start_date_ymd: courseStartDate || null,
+      end_date_ymd: courseEndDate || null,
+      start_month: getMonthFromYmd(courseStartDate),
+      end_month: getMonthFromYmd(courseEndDate),
       region: document.getElementById("region").value || "미정",
       location_detail: document.getElementById("locationDetail").value.trim() || null,
       main_manager_id: nullIfEmpty(document.getElementById("mainManager").value),
@@ -510,8 +563,18 @@ async function saveCourse(event) {
       change_summary: `${payload.course_name} ${actionType}`,
     });
 
-    closeModal("courseModal");
     await loadAll();
+
+    if (!id) {
+      alert("과정이 등록되었습니다. 다시 과정을 열면 차수와 체크리스트를 관리할 수 있습니다.");
+      closeModal("courseModal");
+    } else {
+      state.selectedCourseId = id;
+      renderCourseModalRounds(id);
+      await ensureChecklistStatuses(id, null, "course");
+      renderChecklist(id, null, "courseChecklistArea", "course");
+      alert("과정 정보가 저장되었습니다.");
+    }
   } catch (error) {
     console.error(error);
     alert("과정 저장 중 오류가 발생했습니다.\n\n" + error.message);
@@ -552,27 +615,10 @@ async function hideCurrentCourse() {
 }
 
 // ---------------------------------------------------------
-// Detail Modal
+// 차수 관리
 // ---------------------------------------------------------
-window.openDetailModal = async function(courseId) {
-  state.selectedCourseId = courseId;
-
-  const course = getCourseById(courseId);
-  if (!course) return;
-
-  document.getElementById("detailTitle").textContent = course.course_name;
-  document.getElementById("detailSubtitle").textContent =
-    `${course.client_name || "-"} · ${course.region || "미정"} · 정담당 ${getMemberName(course.main_manager_id) || "-"}`;
-
-  renderRoundList(courseId);
-  await ensureChecklistStatuses(courseId);
-  renderChecklist(courseId);
-
-  openModal("detailModal");
-};
-
-function renderRoundList(courseId) {
-  const container = document.getElementById("roundList");
+function renderCourseModalRounds(courseId) {
+  const container = document.getElementById("courseModalRoundList");
   const rounds = state.rounds
     .filter((r) => r.course_id === courseId)
     .sort((a, b) => a.round_no - b.round_no);
@@ -582,43 +628,315 @@ function renderRoundList(courseId) {
     return;
   }
 
-  container.innerHTML = rounds.map((round) => `
-    <div class="round-card">
-      <div class="flex flex-wrap justify-between gap-2 mb-2">
-        <div>
-          <div class="font-extrabold">${round.round_no}차 ${escapeHtml(round.round_name || "")}</div>
-          <div class="small-muted">${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</div>
-        </div>
-        <div>${statusBadge(round.status)}</div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-1 small-muted">
-        <div>운영장소: ${escapeHtml(round.venue || "-")}</div>
-        <div>비고: ${escapeHtml(round.remarks || "-")}</div>
-        <div>운영시간: ${round.operation_hours ?? "-"}</div>
-        <div>만족도/인원: ${round.satisfaction ?? "-"} / ${round.participant_count ?? "-"}</div>
-      </div>
-
-      ${round.round_memo ? `<div class="mt-2 text-sm bg-slate-50 rounded p-2">${escapeHtml(round.round_memo)}</div>` : ""}
-
-      <div class="mt-3">
-        <button class="btn-secondary" onclick="openRoundModalById('${round.id}')">차수 수정</button>
-      </div>
+  container.innerHTML = `
+    <div class="overflow-x-auto">
+      <table class="round-table">
+        <thead>
+          <tr>
+            <th>차수</th>
+            <th>세부 과정명</th>
+            <th>일정</th>
+            <th>상태</th>
+            <th>실적</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rounds.map((round) => `
+            <tr>
+              <td class="font-bold">${round.round_no}차</td>
+              <td>${escapeHtml(round.round_name || "-")}</td>
+              <td>${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</td>
+              <td>${statusBadge(round.status)}</td>
+              <td>
+                <span class="small-muted">
+                  인원 ${round.participant_count ?? "-"} / 만족도 ${round.satisfaction ?? "-"}
+                </span>
+              </td>
+              <td>
+                <div class="flex gap-1 flex-wrap">
+                  <button type="button" class="btn-secondary" onclick="openRoundModalById('${round.id}')">수정</button>
+                  <button type="button" class="btn-success" onclick="openCompleteModal('${round.id}')">교육 완료</button>
+                </div>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
     </div>
-  `).join("");
+  `;
 }
 
-async function ensureChecklistStatuses(courseId) {
+async function quickAddRound() {
+  const courseId = state.selectedCourseId;
+  if (!courseId) {
+    alert("먼저 과정을 저장해주세요.");
+    return;
+  }
+
+  const start = document.getElementById("quickRoundStart").value.trim();
+  const end = document.getElementById("quickRoundEnd").value.trim();
+
+  if (start && !/^\d{6}$/.test(start)) {
+    alert("차수 시작일은 YYMMDD 6자리로 입력해주세요.");
+    return;
+  }
+
+  if (end && !/^\d{6}$/.test(end)) {
+    alert("차수 종료일은 YYMMDD 6자리로 입력해주세요.");
+    return;
+  }
+
+  try {
+    const payload = {
+      course_id: courseId,
+      round_no: Number(document.getElementById("quickRoundNo").value || getNextRoundNo(courseId)),
+      round_name: document.getElementById("quickRoundName").value.trim() || null,
+      start_date_ymd: start || null,
+      end_date_ymd: end || null,
+      date_label: makeDateLabel(start, end),
+      status: document.getElementById("quickRoundStatus").value || "planning",
+      updated_by: nullIfEmpty(state.currentUserId),
+    };
+
+    const response = await db.from("rounds").insert(payload).select().single();
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "차수",
+      course_id: courseId,
+      round_id: response.data.id,
+      action_type: "신규등록",
+      change_summary: `${payload.round_no}차 신규 등록`,
+    });
+
+    document.getElementById("quickRoundName").value = "";
+    document.getElementById("quickRoundStart").value = "";
+    document.getElementById("quickRoundEnd").value = "";
+
+    await loadAll();
+    state.selectedCourseId = courseId;
+    document.getElementById("quickRoundNo").value = getNextRoundNo(courseId);
+    renderCourseModalRounds(courseId);
+  } catch (error) {
+    alert("차수 추가 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+}
+
+window.openRoundModalById = async function(roundId) {
+  const round = state.rounds.find((r) => r.id === roundId);
+  if (!round) return;
+
+  state.selectedRoundId = roundId;
+  state.selectedCourseId = round.course_id;
+
+  document.getElementById("roundForm").reset();
+  document.getElementById("roundModalTitle").textContent = `${round.round_no}차 수정`;
+
+  document.getElementById("roundId").value = round.id;
+  document.getElementById("roundNo").value = round.round_no || "";
+  document.getElementById("roundName").value = round.round_name || "";
+  document.getElementById("roundStartDate").value = round.start_date_ymd || "";
+  document.getElementById("roundEndDate").value = round.end_date_ymd || "";
+  document.getElementById("roundDateLabel").value = round.date_label || "";
+  document.getElementById("roundStatus").value = round.status || "planning";
+  document.getElementById("roundVenue").value = round.venue || "";
+  document.getElementById("roundRemarks").value = round.remarks || "";
+  document.getElementById("roundMemo").value = round.round_memo || "";
+  document.getElementById("operationHours").value = round.operation_hours || "";
+  document.getElementById("satisfaction").value = round.satisfaction || "";
+  document.getElementById("participantCount").value = round.participant_count || "";
+
+  document.getElementById("hideRoundBtn").classList.remove("hidden");
+  toggleCompletedFields();
+
+  await ensureChecklistStatuses(round.course_id, round.id, "round");
+  renderChecklist(round.course_id, round.id, "roundChecklistArea", "round");
+
+  openModal("roundModal");
+};
+
+function toggleCompletedFields() {
+  const status = document.getElementById("roundStatus").value;
+  document.getElementById("completedFields").classList.toggle("hidden", status !== "completed");
+}
+
+async function saveRound(event) {
+  event.preventDefault();
+
+  const id = document.getElementById("roundId").value;
+  const startDate = document.getElementById("roundStartDate").value.trim();
+  const endDate = document.getElementById("roundEndDate").value.trim();
+
+  if (startDate && !/^\d{6}$/.test(startDate)) {
+    alert("교육시작일은 YYMMDD 6자리로 입력해주세요.");
+    return;
+  }
+
+  if (endDate && !/^\d{6}$/.test(endDate)) {
+    alert("교육종료일은 YYMMDD 6자리로 입력해주세요.");
+    return;
+  }
+
+  try {
+    const status = document.getElementById("roundStatus").value;
+
+    const payload = {
+      round_no: Number(document.getElementById("roundNo").value),
+      round_name: document.getElementById("roundName").value.trim() || null,
+      start_date_ymd: startDate || null,
+      end_date_ymd: endDate || null,
+      date_label: document.getElementById("roundDateLabel").value.trim() || makeDateLabel(startDate, endDate),
+      status,
+      venue: document.getElementById("roundVenue").value.trim() || null,
+      round_memo: document.getElementById("roundMemo").value.trim() || null,
+      remarks: document.getElementById("roundRemarks").value.trim() || null,
+      operation_hours: status === "completed" ? toNumberOrNull(document.getElementById("operationHours").value) : null,
+      satisfaction: status === "completed" ? toNumberOrNull(document.getElementById("satisfaction").value) : null,
+      participant_count: status === "completed" ? toNumberOrNull(document.getElementById("participantCount").value) : null,
+      completed_at: status === "completed" ? new Date().toISOString() : null,
+      updated_by: nullIfEmpty(state.currentUserId),
+    };
+
+    const response = await db.from("rounds").update(payload).eq("id", id).select().single();
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "차수",
+      course_id: response.data.course_id,
+      round_id: id,
+      action_type: "수정",
+      change_summary: `${payload.round_no}차 수정`,
+    });
+
+    await loadAll();
+
+    state.selectedCourseId = response.data.course_id;
+    renderCourseModalRounds(response.data.course_id);
+    closeModal("roundModal");
+  } catch (error) {
+    alert("차수 저장 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+}
+
+async function hideCurrentRound() {
+  const id = document.getElementById("roundId").value;
+  if (!id) return;
+
+  if (!confirm("이 차수는 DB에 남고 화면에서만 숨김 처리됩니다. 진행할까요?")) return;
+
+  try {
+    const round = state.rounds.find((r) => r.id === id);
+    const response = await db
+      .from("rounds")
+      .update({
+        is_active: false,
+        updated_by: nullIfEmpty(state.currentUserId),
+      })
+      .eq("id", id);
+
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "차수",
+      course_id: round?.course_id || null,
+      round_id: id,
+      action_type: "숨김처리",
+      change_summary: "차수 숨김 처리",
+    });
+
+    await loadAll();
+
+    if (round?.course_id) {
+      state.selectedCourseId = round.course_id;
+      renderCourseModalRounds(round.course_id);
+    }
+
+    closeModal("roundModal");
+  } catch (error) {
+    alert("차수 숨김 처리 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+}
+
+// ---------------------------------------------------------
+// 교육 완료 처리
+// ---------------------------------------------------------
+window.openCompleteModal = function(roundId) {
+  const round = state.rounds.find((r) => r.id === roundId);
+  if (!round) return;
+
+  document.getElementById("completeForm").reset();
+  document.getElementById("completeRoundId").value = round.id;
+  document.getElementById("completeRoundInfo").textContent =
+    `${round.round_no}차 · ${round.round_name || ""} · ${round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || ""}`;
+
+  document.getElementById("completeParticipantCount").value = round.participant_count || "";
+  document.getElementById("completeSatisfaction").value = round.satisfaction || "";
+  document.getElementById("completeOperationHours").value = round.operation_hours || "";
+  document.getElementById("completeRemarks").value = round.remarks || "";
+
+  openModal("completeModal");
+};
+
+async function submitCompleteRound(event) {
+  event.preventDefault();
+
+  const roundId = document.getElementById("completeRoundId").value;
+  const round = state.rounds.find((r) => r.id === roundId);
+  if (!round) return;
+
+  try {
+    const payload = {
+      status: "completed",
+      participant_count: toNumberOrNull(document.getElementById("completeParticipantCount").value),
+      satisfaction: toNumberOrNull(document.getElementById("completeSatisfaction").value),
+      operation_hours: toNumberOrNull(document.getElementById("completeOperationHours").value),
+      remarks: document.getElementById("completeRemarks").value.trim() || null,
+      completed_at: new Date().toISOString(),
+      updated_by: nullIfEmpty(state.currentUserId),
+    };
+
+    const response = await db.from("rounds").update(payload).eq("id", roundId).select().single();
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "차수",
+      course_id: round.course_id,
+      round_id: roundId,
+      action_type: "수정",
+      change_summary: `${round.round_no}차 교육 완료 및 실적 입력`,
+    });
+
+    closeModal("completeModal");
+    closeModal("roundModal");
+
+    await loadAll();
+    state.selectedCourseId = round.course_id;
+    renderCourseModalRounds(round.course_id);
+
+    alert("교육 완료 처리가 저장되었습니다.");
+  } catch (error) {
+    alert("교육 완료 처리 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+}
+
+// ---------------------------------------------------------
+// 체크리스트
+// ---------------------------------------------------------
+async function ensureChecklistStatuses(courseId, roundId = null, scope = "course") {
+  const usableItems = getChecklistItemsByScope(scope);
+
   const existingItemIds = state.checklistStatuses
-    .filter((s) => s.course_id === courseId)
+    .filter((s) => s.course_id === courseId && normalizeId(s.round_id) === normalizeId(roundId))
     .map((s) => s.checklist_item_id);
 
-  const missing = state.checklistItems.filter((item) => !existingItemIds.includes(item.id));
+  const missing = usableItems.filter((item) => !existingItemIds.includes(item.id));
 
   if (!missing.length) return;
 
   const rows = missing.map((item) => ({
     course_id: courseId,
+    round_id: roundId,
     checklist_item_id: item.id,
     is_done: false,
     updated_by: nullIfEmpty(state.currentUserId),
@@ -630,39 +948,45 @@ async function ensureChecklistStatuses(courseId) {
   state.checklistStatuses = [...state.checklistStatuses, ...(response.data || [])];
 }
 
-function renderChecklist(courseId) {
-  const container = document.getElementById("checklistArea");
+function renderChecklist(courseId, roundId = null, containerId, scope = "course") {
+  const container = document.getElementById(containerId);
+  if (!container) return;
 
-  const rows = state.checklistItems.map((item) => {
+  const items = getChecklistItemsByScope(scope);
+
+  container.innerHTML = items.map((item) => {
     const status = state.checklistStatuses.find(
-      (s) => s.course_id === courseId && s.checklist_item_id === item.id
+      (s) =>
+        s.course_id === courseId &&
+        normalizeId(s.round_id) === normalizeId(roundId) &&
+        s.checklist_item_id === item.id
     );
 
-    return {
-      item,
-      status,
-    };
-  });
-
-  container.innerHTML = rows.map(({ item, status }) => `
-    <label class="check-item">
-      <input 
-        type="checkbox"
-        ${status?.is_done ? "checked" : ""}
-        onchange="toggleChecklist('${courseId}', '${item.id}', this.checked)"
-      />
-      <span class="text-sm">
-        <b>${escapeHtml(item.code)}</b>
-        ${escapeHtml(item.title)}
-      </span>
-    </label>
-  `).join("");
+    return `
+      <label class="check-item">
+        <input 
+          type="checkbox"
+          ${status?.is_done ? "checked" : ""}
+          onchange="toggleChecklist('${courseId}', '${roundId || ""}', '${item.id}', this.checked, '${containerId}', '${scope}')"
+        />
+        <span>
+          <b>${escapeHtml(item.code)}</b>
+          ${escapeHtml(item.title)}
+        </span>
+      </label>
+    `;
+  }).join("");
 }
 
-window.toggleChecklist = async function(courseId, itemId, checked) {
+window.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, containerId, scope) {
+  const roundId = roundIdRaw || null;
+
   try {
     const existing = state.checklistStatuses.find(
-      (s) => s.course_id === courseId && s.checklist_item_id === itemId
+      (s) =>
+        s.course_id === courseId &&
+        normalizeId(s.round_id) === normalizeId(roundId) &&
+        s.checklist_item_id === itemId
     );
 
     let response;
@@ -682,6 +1006,7 @@ window.toggleChecklist = async function(courseId, itemId, checked) {
         .from("checklist_statuses")
         .insert({
           course_id: courseId,
+          round_id: roundId,
           checklist_item_id: itemId,
           is_done: checked,
           updated_by: nullIfEmpty(state.currentUserId),
@@ -695,181 +1020,172 @@ window.toggleChecklist = async function(courseId, itemId, checked) {
     await insertLog({
       target_type: "체크리스트",
       course_id: courseId,
+      round_id: roundId,
       action_type: "수정",
       change_summary: `체크리스트 ${checked ? "완료" : "미완료"} 처리`,
     });
 
     await loadAll();
-    if (state.selectedCourseId) {
-      renderChecklist(state.selectedCourseId);
-    }
+    renderChecklist(courseId, roundId, containerId, scope);
   } catch (error) {
     alert("체크리스트 저장 중 오류가 발생했습니다.\n\n" + error.message);
   }
 };
 
+function getChecklistItemsByScope(scope) {
+  return state.checklistItems.filter((item) => {
+    if (scope === "course") return item.scope === "course" || item.scope === "both" || !item.scope;
+    if (scope === "round") return item.scope === "round" || item.scope === "both";
+    return true;
+  });
+}
+
 // ---------------------------------------------------------
-// Round Modal
+// 담당자 관리
 // ---------------------------------------------------------
-window.openRoundModalById = function(roundId) {
-  const round = state.rounds.find((r) => r.id === roundId);
-  openRoundModal(round);
-};
+function renderMemberList() {
+  const container = document.getElementById("memberListArea");
 
-function openRoundModal(round = null) {
-  document.getElementById("roundForm").reset();
-
-  const isEdit = !!round;
-  document.getElementById("roundModalTitle").textContent = isEdit ? "차수 수정" : "차수 등록";
-  document.getElementById("hideRoundBtn").classList.toggle("hidden", !isEdit);
-
-  document.getElementById("roundId").value = round?.id || "";
-  document.getElementById("roundNo").value = round?.round_no || getNextRoundNo();
-  document.getElementById("roundName").value = round?.round_name || "";
-  document.getElementById("roundStartDate").value = round?.start_date_ymd || "";
-  document.getElementById("roundEndDate").value = round?.end_date_ymd || "";
-  document.getElementById("roundDateLabel").value = round?.date_label || "";
-  document.getElementById("roundStatus").value = round?.status || "planning";
-  document.getElementById("roundVenue").value = round?.venue || "";
-  document.getElementById("roundRemarks").value = round?.remarks || "";
-  document.getElementById("roundMemo").value = round?.round_memo || "";
-  document.getElementById("operationHours").value = round?.operation_hours || "";
-  document.getElementById("satisfaction").value = round?.satisfaction || "";
-  document.getElementById("participantCount").value = round?.participant_count || "";
-
-  toggleCompletedFields();
-
-  openModal("roundModal");
-}
-
-function getNextRoundNo() {
-  const courseRounds = state.rounds.filter((r) => r.course_id === state.selectedCourseId);
-  if (!courseRounds.length) return 1;
-  return Math.min(Math.max(...courseRounds.map((r) => r.round_no)) + 1, 15);
-}
-
-function toggleCompletedFields() {
-  const status = document.getElementById("roundStatus").value;
-  document.getElementById("completedFields").classList.toggle("hidden", status !== "completed");
-}
-
-async function saveRound(event) {
-  event.preventDefault();
-
-  if (!state.selectedCourseId) {
-    alert("과정이 선택되지 않았습니다.");
+  if (!state.members.length) {
+    container.innerHTML = emptyBox("등록된 담당자가 없습니다.");
     return;
   }
 
-  const startDate = document.getElementById("roundStartDate").value.trim();
-  const endDate = document.getElementById("roundEndDate").value.trim();
+  container.innerHTML = state.members.map((member) => `
+    <div class="bg-white border rounded-xl p-3 grid grid-cols-1 md:grid-cols-7 gap-2 items-center">
+      <input class="input" id="member-name-${member.id}" value="${escapeHtml(member.name || "")}" />
+      <input class="input" id="member-position-${member.id}" value="${escapeHtml(member.position || "")}" />
+      <input class="input" id="member-department-${member.id}" value="${escapeHtml(member.department || "")}" />
+      <input class="input" id="member-email-${member.id}" value="${escapeHtml(member.email || "")}" />
+      <input class="input" id="member-sort-${member.id}" type="number" value="${member.sort_order ?? 999}" />
 
-  if (startDate && !/^\d{6}$/.test(startDate)) {
-    alert("교육시작일은 YYMMDD 6자리로 입력해주세요.");
-    return;
-  }
+      <button class="btn-secondary" onclick="updateMember('${member.id}')">
+        수정
+      </button>
 
-  if (endDate && !/^\d{6}$/.test(endDate)) {
-    alert("교육종료일은 YYMMDD 6자리로 입력해주세요.");
+      <button class="btn-danger" onclick="hideMember('${member.id}')">
+        숨김
+      </button>
+    </div>
+  `).join("");
+}
+
+async function addMember() {
+  const name = document.getElementById("newMemberName").value.trim();
+
+  if (!name) {
+    alert("담당자 이름을 입력해주세요.");
     return;
   }
 
   try {
-    const id = document.getElementById("roundId").value;
-    const status = document.getElementById("roundStatus").value;
-
     const payload = {
-      course_id: state.selectedCourseId,
-      round_no: Number(document.getElementById("roundNo").value),
-      round_name: document.getElementById("roundName").value.trim() || null,
-      start_date_ymd: startDate || null,
-      end_date_ymd: endDate || null,
-      date_label: document.getElementById("roundDateLabel").value.trim() || makeDateLabel(startDate, endDate),
-      status,
-      venue: document.getElementById("roundVenue").value.trim() || null,
-      round_memo: document.getElementById("roundMemo").value.trim() || null,
-      remarks: document.getElementById("roundRemarks").value.trim() || null,
-      operation_hours: status === "completed" ? toNumberOrNull(document.getElementById("operationHours").value) : null,
-      satisfaction: status === "completed" ? toNumberOrNull(document.getElementById("satisfaction").value) : null,
-      participant_count: status === "completed" ? toNumberOrNull(document.getElementById("participantCount").value) : null,
-      updated_by: nullIfEmpty(state.currentUserId),
+      name,
+      position: document.getElementById("newMemberPosition").value.trim() || null,
+      department: document.getElementById("newMemberDepartment").value.trim() || "HRD사업팀",
+      email: document.getElementById("newMemberEmail").value.trim() || null,
+      sort_order: toNumberOrNull(document.getElementById("newMemberSortOrder").value) || 999,
+      is_active: true,
     };
 
-    let response;
-    let actionType;
+    const response = await db.from("members").insert(payload).select().single();
+    throwIfError(response);
 
-    if (id) {
-      response = await db.from("rounds").update(payload).eq("id", id).select().single();
-      actionType = "수정";
-    } else {
-      response = await db.from("rounds").insert(payload).select().single();
-      actionType = "신규등록";
+    await insertLog({
+      target_type: "담당자",
+      action_type: "신규등록",
+      change_summary: `${payload.name} 담당자 신규 등록`,
+    });
+
+    document.getElementById("newMemberName").value = "";
+    document.getElementById("newMemberPosition").value = "";
+    document.getElementById("newMemberEmail").value = "";
+    document.getElementById("newMemberSortOrder").value = "";
+
+    await loadAll();
+    renderMemberList();
+
+    alert("담당자가 추가되었습니다.");
+  } catch (error) {
+    alert("담당자 추가 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+}
+
+window.updateMember = async function(memberId) {
+  try {
+    const payload = {
+      name: document.getElementById(`member-name-${memberId}`).value.trim(),
+      position: document.getElementById(`member-position-${memberId}`).value.trim() || null,
+      department: document.getElementById(`member-department-${memberId}`).value.trim() || "HRD사업팀",
+      email: document.getElementById(`member-email-${memberId}`).value.trim() || null,
+      sort_order: toNumberOrNull(document.getElementById(`member-sort-${memberId}`).value) || 999,
+    };
+
+    if (!payload.name) {
+      alert("이름은 비워둘 수 없습니다.");
+      return;
     }
+
+    const response = await db
+      .from("members")
+      .update(payload)
+      .eq("id", memberId)
+      .select()
+      .single();
 
     throwIfError(response);
 
     await insertLog({
-      target_type: "차수",
-      course_id: state.selectedCourseId,
-      round_id: response.data.id,
-      action_type: actionType,
-      change_summary: `${payload.round_no}차 ${actionType}`,
+      target_type: "담당자",
+      action_type: "수정",
+      change_summary: `${payload.name} 담당자 정보 수정`,
     });
 
-    closeModal("roundModal");
     await loadAll();
+    renderMemberList();
 
-    if (state.selectedCourseId) {
-      renderRoundList(state.selectedCourseId);
-    }
+    alert("담당자 정보가 수정되었습니다.");
   } catch (error) {
-    console.error(error);
-    alert("차수 저장 중 오류가 발생했습니다.\n\n" + error.message);
+    alert("담당자 수정 중 오류가 발생했습니다.\n\n" + error.message);
   }
-}
+};
 
-async function hideCurrentRound() {
-  const id = document.getElementById("roundId").value;
-  if (!id) return;
+window.hideMember = async function(memberId) {
+  const member = state.members.find((m) => m.id === memberId);
 
-  if (!confirm("이 차수는 DB에 남고 화면에서만 숨김 처리됩니다. 진행할까요?")) return;
+  if (!confirm(`${member?.name || "담당자"}님을 숨김 처리할까요?`)) {
+    return;
+  }
 
   try {
     const response = await db
-      .from("rounds")
-      .update({
-        is_active: false,
-        updated_by: nullIfEmpty(state.currentUserId),
-      })
-      .eq("id", id);
+      .from("members")
+      .update({ is_active: false })
+      .eq("id", memberId);
 
     throwIfError(response);
 
     await insertLog({
-      target_type: "차수",
-      course_id: state.selectedCourseId,
-      round_id: id,
+      target_type: "담당자",
       action_type: "숨김처리",
-      change_summary: "차수 숨김 처리",
+      change_summary: `${member?.name || "담당자"} 숨김 처리`,
     });
 
-    closeModal("roundModal");
     await loadAll();
+    renderMemberList();
 
-    if (state.selectedCourseId) {
-      renderRoundList(state.selectedCourseId);
-    }
+    alert("담당자가 숨김 처리되었습니다.");
   } catch (error) {
-    alert("차수 숨김 처리 중 오류가 발생했습니다.\n\n" + error.message);
+    alert("담당자 숨김 처리 중 오류가 발생했습니다.\n\n" + error.message);
   }
-}
+};
 
 // ---------------------------------------------------------
-// Status Refresh
+// 데이터 업데이트 / 엑셀 다운로드
 // ---------------------------------------------------------
-async function refreshStatuses() {
+async function updateData() {
   try {
-    setSyncStatus("상태 갱신 중...");
+    setSyncStatus("데이터 업데이트 중...");
 
     const response = await db.rpc("refresh_round_and_course_statuses");
     throwIfError(response);
@@ -877,19 +1193,150 @@ async function refreshStatuses() {
     await insertLog({
       target_type: "설정",
       action_type: "상태갱신",
-      change_summary: "오늘 날짜 기준 차수/과정 상태 갱신",
+      change_summary: "데이터 업데이트 버튼을 통한 상태 갱신 및 최신 데이터 조회",
     });
 
     await loadAll();
-    alert("상태 갱신이 완료되었습니다.");
+
+    setSyncStatus(`업데이트 완료 · ${formatNow()}`);
+    alert("데이터 업데이트가 완료되었습니다.");
   } catch (error) {
     console.error(error);
-    alert("상태 갱신 중 오류가 발생했습니다.\n\n" + error.message);
+    setSyncStatus("업데이트 오류");
+    alert("데이터 업데이트 중 오류가 발생했습니다.\n\n" + error.message);
   }
 }
 
+function downloadExcel() {
+  const courses = getFilteredCourses();
+
+  if (!courses.length) {
+    alert("다운로드할 데이터가 없습니다.");
+    return;
+  }
+
+  const rows = [];
+
+  rows.push([
+    "과정명",
+    "고객사",
+    "교육대상",
+    "과정시작일",
+    "과정종료일",
+    "연수지역",
+    "세부장소",
+    "정담당자",
+    "부담당자1",
+    "부담당자2",
+    "부담당자3",
+    "과정상태",
+    "예상예산",
+    "차수",
+    "세부과정명",
+    "교육시작일",
+    "교육종료일",
+    "교육일정표기",
+    "차수상태",
+    "운영장소",
+    "운영시간",
+    "전반만족도",
+    "교육인원",
+    "차수비고",
+    "특이사항"
+  ]);
+
+  courses.forEach((course) => {
+    const courseRounds = state.rounds
+      .filter((round) => round.course_id === course.id)
+      .sort((a, b) => a.round_no - b.round_no);
+
+    if (!courseRounds.length) {
+      rows.push([
+        course.course_name,
+        course.client_name,
+        course.target_audience,
+        course.start_date_ymd,
+        course.end_date_ymd,
+        course.region,
+        course.location_detail,
+        getMemberName(course.main_manager_id),
+        getMemberName(course.sub_manager1_id),
+        getMemberName(course.sub_manager2_id),
+        getMemberName(course.sub_manager3_id),
+        STATUS_LABELS[course.status] || course.status,
+        course.expected_budget,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        course.notes
+      ]);
+    } else {
+      courseRounds.forEach((round) => {
+        rows.push([
+          course.course_name,
+          course.client_name,
+          course.target_audience,
+          course.start_date_ymd,
+          course.end_date_ymd,
+          course.region,
+          course.location_detail,
+          getMemberName(course.main_manager_id),
+          getMemberName(course.sub_manager1_id),
+          getMemberName(course.sub_manager2_id),
+          getMemberName(course.sub_manager3_id),
+          STATUS_LABELS[course.status] || course.status,
+          course.expected_budget,
+          round.round_no,
+          round.round_name,
+          round.start_date_ymd,
+          round.end_date_ymd,
+          round.date_label,
+          STATUS_LABELS[round.status] || round.status,
+          round.venue,
+          round.operation_hours,
+          round.satisfaction,
+          round.participant_count,
+          round.remarks,
+          course.notes
+        ]);
+      });
+    }
+  });
+
+  const csv = rows
+    .map((row) => row.map(csvEscape).join(","))
+    .join("\n");
+
+  const bom = "\uFEFF";
+  const blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8;" });
+
+  const today = new Date();
+  const fileName = `HRI_과정운영_데이터_${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}.csv`;
+
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+
+  link.setAttribute("href", url);
+  link.setAttribute("download", fileName);
+  link.style.display = "none";
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+}
+
 // ---------------------------------------------------------
-// Activity Log
+// 이력
 // ---------------------------------------------------------
 async function insertLog({ target_type, course_id = null, round_id = null, action_type, change_summary }) {
   const response = await db.from("activity_logs").insert({
@@ -907,7 +1354,7 @@ async function insertLog({ target_type, course_id = null, round_id = null, actio
 }
 
 // ---------------------------------------------------------
-// Helpers
+// Helper
 // ---------------------------------------------------------
 function getCourseById(id) {
   return state.courses.find((c) => c.id === id);
@@ -932,9 +1379,13 @@ function statusBadge(status) {
   return `<span class="status-badge status-${status}">${STATUS_LABELS[status] || status}</span>`;
 }
 
+function statusText(status) {
+  return STATUS_LABELS[status] || status || "-";
+}
+
 function emptyBox(message) {
   return `
-    <div class="bg-white rounded-xl shadow p-10 text-center text-slate-500">
+    <div class="bg-white rounded-xl border p-8 text-center text-slate-500">
       ${escapeHtml(message)}
     </div>
   `;
@@ -967,6 +1418,10 @@ function nullIfEmpty(value) {
   return value ? value : null;
 }
 
+function normalizeId(value) {
+  return value || null;
+}
+
 function toNumberOrNull(value) {
   if (value === "" || value === null || value === undefined) return null;
   const num = Number(value);
@@ -986,6 +1441,33 @@ function yymmddToShort(value) {
   const month = Number(value.slice(2, 4));
   const day = Number(value.slice(4, 6));
   return `${month}/${day}`;
+}
+
+function getMonthFromYmd(value) {
+  if (!value || !/^\d{6}$/.test(value)) return null;
+  const month = Number(value.slice(2, 4));
+  if (month < 1 || month > 12) return null;
+  return month;
+}
+
+function getCourseStartMonth(course) {
+  return getMonthFromYmd(course.start_date_ymd) || course.start_month || null;
+}
+
+function getCourseEndMonth(course) {
+  return getMonthFromYmd(course.end_date_ymd) || course.end_month || null;
+}
+
+function getNextRoundNo(courseId) {
+  const courseRounds = state.rounds.filter((r) => r.course_id === courseId);
+  if (!courseRounds.length) return 1;
+  return Math.min(Math.max(...courseRounds.map((r) => r.round_no)) + 1, 15);
+}
+
+function csvEscape(value) {
+  if (value === null || value === undefined) return "";
+  const text = String(value).replaceAll('"', '""');
+  return `"${text}"`;
 }
 
 function escapeHtml(value) {
