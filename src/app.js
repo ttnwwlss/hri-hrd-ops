@@ -15,7 +15,8 @@ const STATUS_LABELS = {
 const STATUS_ORDER = ["planning", "ready", "running", "completed", "hold", "canceled"];
 
 const REGIONS = [
-  "미정", "서울", "경기", "인천", "강원", "충북", "충남", "대전", "세종",
+  "미정", "전국", "비대면",
+  "서울", "경기", "인천", "강원", "충북", "충남", "대전", "세종",
   "전북", "전남", "광주", "경북", "경남", "대구", "울산", "부산", "제주"
 ];
 
@@ -31,6 +32,7 @@ let state = {
   selectedCourseId: "",
   selectedRoundId: "",
   selectedSupportManagerIds: [],
+  selectedRoundFieldManagerIds: [],
 };
 
 // ---------------------------------------------------------
@@ -53,6 +55,8 @@ function formatTinyDate(value) {
 document.addEventListener("DOMContentLoaded", async () => {
   bindEvents();
   fillStaticSelects();
+  ensureRoundFieldManagerUI();
+  ensureCompleteSatisfactionUI();
   await loadAll();
 });
 
@@ -161,6 +165,7 @@ async function loadAll() {
     state.logs = logsRes.data || [];
 
     fillMemberSelects();
+    fillRoundFieldManagerSelect();
 
     const savedUserId = localStorage.getItem("hri_current_user_id") || "";
     state.currentUserId = savedUserId;
@@ -223,6 +228,7 @@ function fillMemberSelects() {
     "subManager1",
     "subManager2",
     "supportManagerSelect",
+    "roundFieldManagerSelect",
   ];
 
   selectors.forEach((id) => {
@@ -235,6 +241,7 @@ function fillMemberSelects() {
       id === "businessManager" ? "사업담당자 선택" :
       id === "mainManager" ? "운영PM 선택" :
       id === "supportManagerSelect" ? "현장지원 인원 선택" :
+      id === "roundFieldManagerSelect" ? "차수별 현장운영자 선택" :
       "없음";
 
     select.innerHTML = `<option value="">${label}</option>`;
@@ -433,19 +440,32 @@ function renderKanban() {
   const subStatuses = ["hold", "canceled"];
 
   const renderColumn = (status) => {
-    const list = courses.filter((c) => c.status === status);
+    let list = courses.filter((c) => c.status === status);
+
+    if (status === "completed") {
+      list = [...list].sort((a, b) => {
+        const dateA = new Date(a.updated_at || a.end_date_ymd || a.created_at || 0);
+        const dateB = new Date(b.updated_at || b.end_date_ymd || b.created_at || 0);
+        return dateB - dateA;
+      });
+    }
 
     return `
       <div class="kanban-column-v2 kanban-${status}">
         <div class="kanban-header-v2">
           <div class="flex items-center gap-2">
             <span class="kanban-dot dot-${status}"></span>
-            <h3>${STATUS_LABELS[status]}</h3>
+            <div>
+              <h3>${STATUS_LABELS[status]}</h3>
+              ${completedHint}
+            </div>
           </div>
           <span class="kanban-count">${list.length}</span>
         </div>
 
-        <div class="kanban-body-v2">
+        ${status === "completed" ? `<div class="kanban-column-note">최근 수정순 · 컬럼 내부 스크롤</div>` : ""}
+
+        <div class="kanban-body-v2 ${status === "completed" ? "kanban-body-scroll" : ""}">
           ${
             list.length
               ? list.map(renderCourseMiniCard).join("")
@@ -527,13 +547,18 @@ function renderCourseMiniCard(course) {
 
         ${
           rounds.length
-            ? rounds.slice(0, 3).map((round) => `
-              <div class="round-preview-item">
-                <span class="round-dot dot-${round.status}"></span>
-                <span class="round-preview-name">${round.round_no}차수 ${escapeHtml(round.round_name || "")}</span>
-                <span class="round-preview-date">${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</span>
-              </div>
-            `).join("")
+            ? rounds.slice(0, 3).map((round) => {
+              const fieldText = getRoundFieldShortNames(round.field_manager_ids, 2);
+              return `
+                <div class="round-preview-item round-preview-item-with-field">
+                  <span class="round-dot dot-${round.status}"></span>
+                  <span class="round-preview-name">${round.round_no}차수 ${escapeHtml(round.round_name || "")}</span>
+                  <span class="round-preview-date">${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</span>
+                  ${round.venue ? `<span class="round-preview-venue">장소: ${escapeHtml(round.venue)}</span>` : ""}
+                  ${fieldText ? `<span class="round-preview-field">현장: ${escapeHtml(fieldText)}</span>` : ""}
+                </div>
+              `;
+            }).join("")
             : `<div class="small-muted">등록된 차수 없음</div>`
         }
 
@@ -561,41 +586,31 @@ function renderCourseMiniCard(course) {
 function renderRR() {
   const container = document.getElementById("rrView");
   const courses = getFilteredCourses();
-
   const activeWorkStatuses = ["ready", "running"];
 
   let html = `<div class="rr-grid">`;
 
   state.members.forEach((member) => {
-    const assignedAll = courses.filter((course) => {
-      const managerIds = [
-        course.business_manager_id,
-        course.main_manager_id,
-        course.sub_manager1_id,
-        course.sub_manager2_id,
-        ...(course.support_manager_ids || []),
-      ].filter(Boolean);
+    const activeProjectItems = buildRRProjectItems(member.id, courses, activeWorkStatuses);
+    const activeFieldItems = buildRRFieldRoundItems(member.id, courses, activeWorkStatuses);
+    const currentItems = [...activeProjectItems, ...activeFieldItems].sort(sortRRItems);
 
-      return managerIds.includes(member.id);
-    });
+    const completedProjectItems = buildRRProjectItems(member.id, courses, ["completed"]);
+    const completedFieldItems = buildRRFieldRoundItems(member.id, courses, ["completed"]);
+    const completedItems = [...completedProjectItems, ...completedFieldItems].sort(sortRRItemsDesc);
 
-    // 업무량 판단 및 기본 노출 목록은 준비중/운영중만 포함
-    const assigned = assignedAll.filter((course) => activeWorkStatuses.includes(course.status));
+    const businessCount = activeProjectItems.filter((item) => item.roleLabel === "사업담당자").length;
+    const pmCount = activeProjectItems.filter((item) => item.roleLabel === "운영PM").length;
+    const assistCount = activeProjectItems.filter((item) => item.roleLabel === "운영보조1" || item.roleLabel === "운영보조2").length;
+    const fieldCount = activeFieldItems.length;
 
-    const businessCourses = assigned.filter((course) => course.business_manager_id === member.id);
-    const pmCourses = assigned.filter((course) => course.main_manager_id === member.id);
-    const assistCourses = assigned.filter((course) =>
-      course.sub_manager1_id === member.id || course.sub_manager2_id === member.id
-    );
-    const fieldCourses = assigned.filter((course) =>
-      (course.support_manager_ids || []).includes(member.id)
-    );
-
-    const loadStatus = getLoadStatus(assigned.length);
-
-    const visibleAssigned = assigned.slice(0, 3);
-    const hiddenAssigned = assigned.slice(3);
+    const loadStatus = getLoadStatus(currentItems.length);
+    const visibleItems = currentItems.slice(0, 3);
+    const hiddenItems = currentItems.slice(3);
     const moreAreaId = `rr-more-${member.id}`;
+    const historyAreaId = `rr-history-${member.id}`;
+
+    const completedSummary = getRRCompletedSummary(completedItems);
 
     html += `
       <div class="rr-card">
@@ -605,60 +620,60 @@ function renderRR() {
             <div class="rr-name">${escapeHtml(member.name)}</div>
           </div>
 
-          <span class="load-badge ${loadStatus.className}">
-            ${loadStatus.label}
-          </span>
+          <span class="load-badge ${loadStatus.className}">${loadStatus.label}</span>
         </div>
 
         <div class="rr-divider"></div>
 
         <div class="rr-summary rr-summary-4">
-          <div>
-            <b>${businessCourses.length}</b>
-            <span>사업</span>
-          </div>
-          <div>
-            <b>${pmCourses.length}</b>
-            <span>PM</span>
-          </div>
-          <div>
-            <b>${assistCourses.length}</b>
-            <span>보조</span>
-          </div>
-          <div>
-            <b>${fieldCourses.length}</b>
-            <span>현장</span>
-          </div>
+          <div><b>${businessCount}</b><span>사업</span></div>
+          <div><b>${pmCount}</b><span>PM</span></div>
+          <div><b>${assistCount}</b><span>보조</span></div>
+          <div><b>${fieldCount}</b><span>현장</span></div>
         </div>
 
         <div class="rr-section-title">
-          담당 프로젝트
-          <span>
-            준비중/운영중 기준 · 사업 ${businessCourses.length} / PM ${pmCourses.length} / 보조 ${assistCourses.length} / 현장 ${fieldCourses.length}
-          </span>
+          현재 담당
+          <span>준비중/운영중 기준 · 현장은 차수별 현장운영자 기준</span>
         </div>
 
         <div class="rr-project-list">
           ${
-            assigned.length
+            currentItems.length
               ? `
-                ${visibleAssigned.map((course) => renderRRProjectItem(course, member.id)).join("")}
-
+                ${visibleItems.map(renderRRItem).join("")}
                 ${
-                  hiddenAssigned.length
+                  hiddenItems.length
                     ? `
                       <div id="${moreAreaId}" class="hidden">
-                        ${hiddenAssigned.map((course) => renderRRProjectItem(course, member.id)).join("")}
+                        ${hiddenItems.map(renderRRItem).join("")}
                       </div>
-
-                      <button type="button" class="rr-more-btn" onclick="toggleRRMore('${moreAreaId}', this)">
-                        +${hiddenAssigned.length}개 더보기
-                      </button>
+                      <button type="button" class="rr-more-btn" onclick="toggleRRMore('${moreAreaId}', this)">+${hiddenItems.length}개 더보기</button>
                     `
                     : ""
                 }
               `
               : `<div class="rr-empty">현재 준비중/운영중인 담당 프로젝트 없음</div>`
+          }
+        </div>
+
+        <div class="rr-history-box">
+          <div class="rr-section-title rr-history-title">
+            완료 이력
+            <span>총 ${completedItems.length}건 · 참여자 ${completedSummary.participants}명 · 평균 만족도 ${completedSummary.avgSatisfaction}</span>
+          </div>
+
+          ${
+            completedItems.length
+              ? `
+                <button type="button" class="rr-history-toggle" onclick="toggleRRMore('${historyAreaId}', this, '완료 이력 ${completedItems.length}건 보기')">
+                  완료 이력 ${completedItems.length}건 보기
+                </button>
+                <div id="${historyAreaId}" class="rr-history-list hidden">
+                  ${completedItems.map(renderRRItem).join("")}
+                </div>
+              `
+              : `<div class="rr-empty rr-empty-small">완료 이력 없음</div>`
           }
         </div>
       </div>
@@ -669,30 +684,93 @@ function renderRR() {
   container.innerHTML = html;
 }
 
-function renderRRProjectItem(course, memberId) {
-  const role = getRoleLabel(course, memberId);
-  const period = makeDateLabel(course.start_date_ymd, course.end_date_ymd)
-    || makeMonthRangeLabel(course)
-    || "-";
+function buildRRProjectItems(memberId, courses, statuses) {
+  return courses
+    .filter((course) => statuses.includes(course.status))
+    .flatMap((course) => {
+      const roles = [];
+      if (course.business_manager_id === memberId) roles.push("사업담당자");
+      if (course.main_manager_id === memberId) roles.push("운영PM");
+      if (course.sub_manager1_id === memberId) roles.push("운영보조1");
+      if (course.sub_manager2_id === memberId) roles.push("운영보조2");
+
+      return roles.map((roleLabel) => ({
+        type: "course",
+        course,
+        round: null,
+        roleLabel,
+        title: course.course_name,
+        period: makeDateLabel(course.start_date_ymd, course.end_date_ymd) || makeMonthRangeLabel(course) || "-",
+        status: course.status,
+        participants: 0,
+        satisfaction: null,
+        sortDate: course.end_date_ymd || course.start_date_ymd || course.updated_at || course.created_at,
+      }));
+    });
+}
+
+function buildRRFieldRoundItems(memberId, courses, statuses) {
+  return state.rounds
+    .filter((round) => statuses.includes(round.status))
+    .filter((round) => (round.field_manager_ids || []).includes(memberId))
+    .map((round) => {
+      const course = courses.find((item) => item.id === round.course_id) || getCourseById(round.course_id) || {};
+      return {
+        type: "round-field",
+        course,
+        round,
+        roleLabel: "현장운영",
+        title: `${course.course_name || "프로젝트"} · ${round.round_no || ""}차 ${round.round_name || ""}`,
+        period: round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-",
+        status: round.status || course.status,
+        participants: Number(round.participant_count) || 0,
+        satisfaction: round.satisfaction,
+        sortDate: round.end_date_ymd || round.start_date_ymd || round.updated_at || course.updated_at || course.created_at,
+      };
+    });
+}
+
+function renderRRItem(item) {
+  const courseId = item.course?.id || item.round?.course_id || "";
+  const role = item.roleLabel || "담당자";
 
   return `
-    <div class="rr-project-item" onclick="openCourseModalById('${course.id}')">
+    <div class="rr-project-item" onclick="openCourseModalById('${courseId}')">
       <div class="rr-project-main">
-        <span class="rr-status-dot dot-${course.status}"></span>
-        <b>${escapeHtml(course.course_name)}</b>
+        <span class="rr-status-dot dot-${item.status}"></span>
+        <b>${escapeHtml(item.title || "-")}</b>
       </div>
 
       <div class="rr-project-sub">
-        <span class="role-chip ${getRoleChipClass(role)}">
-          ${escapeHtml(getRoleShortLabel(role))}
-        </span>
-        <span>${escapeHtml(period)}</span>
+        <span class="role-chip ${getRoleChipClass(role)}">${escapeHtml(getRoleShortLabel(role))}</span>
+        <span>${escapeHtml(item.period || "-")}</span>
       </div>
     </div>
   `;
 }
 
-window.toggleRRMore = function(areaId, button) {
+function sortRRItems(a, b) {
+  return String(a.sortDate || "999999").localeCompare(String(b.sortDate || "999999"));
+}
+
+function sortRRItemsDesc(a, b) {
+  return String(b.sortDate || "000000").localeCompare(String(a.sortDate || "000000"));
+}
+
+function getRRCompletedSummary(items) {
+  const participants = items.reduce((sum, item) => sum + (Number(item.participants) || 0), 0);
+  const satisfactionRows = items
+    .map((item) => Number(item.satisfaction))
+    .filter((value) => Number.isFinite(value) && value > 0);
+
+  const avgSatisfaction = satisfactionRows.length
+    ? (satisfactionRows.reduce((sum, value) => sum + value, 0) / satisfactionRows.length).toFixed(2)
+    : "-";
+
+  return { participants, avgSatisfaction };
+}
+
+window.toggleRRMore = function(areaId, button, closedText = null) {
   const area = document.getElementById(areaId);
   if (!area) return;
 
@@ -701,6 +779,8 @@ window.toggleRRMore = function(areaId, button) {
 
   if (isHidden) {
     button.textContent = "접기";
+  } else if (closedText) {
+    button.textContent = closedText;
   } else {
     const hiddenCount = area.querySelectorAll(".rr-project-item").length;
     button.textContent = `+${hiddenCount}개 더보기`;
@@ -1446,6 +1526,8 @@ function renderCourseModalRounds(courseId) {
             <th>세부 과정명</th>
             <th>일정</th>
             <th>상태</th>
+            <th>장소</th>
+            <th>현장운영자</th>
             <th>실적</th>
             <th>관리</th>
           </tr>
@@ -1457,6 +1539,8 @@ function renderCourseModalRounds(courseId) {
               <td>${escapeHtml(round.round_name || "-")}</td>
               <td>${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</td>
               <td>${statusBadge(round.status)}</td>
+              <td><span class="small-muted">${escapeHtml(round.venue || "-")}</span></td>
+              <td><span class="small-muted">${escapeHtml(getRoundFieldManagerNames(round.field_manager_ids) || "-")}</span></td>
               <td>
                 <span class="small-muted">
                   인원 ${round.participant_count ?? "-"} / 만족도 ${round.satisfaction ?? "-"}
@@ -1465,6 +1549,7 @@ function renderCourseModalRounds(courseId) {
               <td>
                 <div class="flex gap-1 flex-wrap">
                   <button type="button" class="btn-secondary" onclick="openRoundModalById('${round.id}')">수정</button>
+                  <button type="button" class="btn-secondary" onclick="duplicateRound('${round.id}')">복사</button>
                   <button type="button" class="btn-success" onclick="openCompleteModal('${round.id}')">교육 완료</button>
                 </div>
               </td>
@@ -1505,6 +1590,7 @@ async function quickAddRound() {
       end_date_ymd: end || null,
       date_label: makeDateLabel(start, end),
       status: document.getElementById("quickRoundStatus").value || "planning",
+      field_manager_ids: [],
       updated_by: nullIfEmpty(state.currentUserId),
     };
 
@@ -1538,6 +1624,7 @@ window.openRoundModalById = async function(roundId) {
 
   state.selectedRoundId = roundId;
   state.selectedCourseId = round.course_id;
+  state.selectedRoundFieldManagerIds = Array.isArray(round.field_manager_ids) ? [...round.field_manager_ids] : [];
 
   document.getElementById("roundForm").reset();
   document.getElementById("roundModalTitle").textContent = `${round.round_no}차 수정`;
@@ -1553,8 +1640,15 @@ window.openRoundModalById = async function(roundId) {
   document.getElementById("roundRemarks").value = round.remarks || "";
   document.getElementById("roundMemo").value = round.round_memo || "";
   document.getElementById("operationHours").value = round.operation_hours || "";
-  document.getElementById("satisfaction").value = round.satisfaction || "";
+  document.getElementById("satisfaction").value = formatDecimal2ForInput(round.satisfaction);
+  setValueIfExists("instructorSatisfaction", formatDecimal2ForInput(round.instructor_satisfaction));
+  setValueIfExists("operationSatisfaction", formatDecimal2ForInput(round.operation_satisfaction));
   document.getElementById("participantCount").value = round.participant_count || "";
+
+  ensureRoundFieldManagerUI();
+  ensureRoundSatisfactionUI();
+  fillRoundFieldManagerSelect();
+  renderRoundFieldManagerTags();
 
   document.getElementById("hideRoundBtn").classList.remove("hidden");
   toggleCompletedFields();
@@ -1597,15 +1691,21 @@ async function saveRound(event) {
       end_date_ymd: endDate || null,
       date_label: document.getElementById("roundDateLabel").value.trim() || makeDateLabel(startDate, endDate),
       status,
+      field_manager_ids: state.selectedRoundFieldManagerIds || [],
       venue: document.getElementById("roundVenue").value.trim() || null,
       round_memo: document.getElementById("roundMemo").value.trim() || null,
       remarks: document.getElementById("roundRemarks").value.trim() || null,
-      operation_hours: status === "completed" ? toNumberOrNull(document.getElementById("operationHours").value) : null,
-      satisfaction: status === "completed" ? toNumberOrNull(document.getElementById("satisfaction").value) : null,
-      participant_count: status === "completed" ? toNumberOrNull(document.getElementById("participantCount").value) : null,
-      completed_at: status === "completed" ? new Date().toISOString() : null,
       updated_by: nullIfEmpty(state.currentUserId),
     };
+
+    if (status === "completed") {
+      payload.operation_hours = toNumberOrNull(document.getElementById("operationHours").value);
+      payload.satisfaction = toDecimal2OrNull(document.getElementById("satisfaction").value);
+      payload.instructor_satisfaction = toDecimal2OrNull(getValueIfExists("instructorSatisfaction"));
+      payload.operation_satisfaction = toDecimal2OrNull(getValueIfExists("operationSatisfaction"));
+      payload.participant_count = toNumberOrNull(document.getElementById("participantCount").value);
+      payload.completed_at = new Date().toISOString();
+    }
 
     const response = await db.from("rounds").update(payload).eq("id", id).select().single();
     throwIfError(response);
@@ -1627,6 +1727,80 @@ async function saveRound(event) {
     alert("차수 저장 중 오류가 발생했습니다.\n\n" + error.message);
   }
 }
+
+window.duplicateRound = async function(roundId) {
+  const source = state.rounds.find((r) => r.id === roundId);
+  if (!source) {
+    alert("복사할 차수를 찾을 수 없습니다.");
+    return;
+  }
+
+  if (!confirm(`${source.round_no}차를 복사하시겠습니까?\n운영 실적은 복사되지 않고, 장소/현장운영자/체크리스트 구성만 복사됩니다.`)) return;
+
+  try {
+    const nextNo = getNextRoundNo(source.course_id);
+    const payload = {
+      course_id: source.course_id,
+      round_no: nextNo,
+      round_name: source.round_name || null,
+      start_date_ymd: null,
+      end_date_ymd: null,
+      date_label: null,
+      status: "planning",
+      venue: source.venue || null,
+      field_manager_ids: Array.isArray(source.field_manager_ids) ? source.field_manager_ids : [],
+      round_memo: source.round_memo || null,
+      remarks: source.remarks || null,
+      operation_hours: null,
+      satisfaction: null,
+      instructor_satisfaction: null,
+      operation_satisfaction: null,
+      participant_count: null,
+      completed_at: null,
+      updated_by: nullIfEmpty(state.currentUserId),
+    };
+
+    const roundRes = await db.from("rounds").insert(payload).select().single();
+    throwIfError(roundRes);
+
+    const newRound = roundRes.data;
+
+    const sourceStatuses = state.checklistStatuses.filter(
+      (s) => normalizeId(s.round_id) === normalizeId(source.id) && s.course_id === source.course_id
+    );
+
+    if (sourceStatuses.length) {
+      const copiedStatuses = sourceStatuses.map((s) => ({
+        course_id: source.course_id,
+        round_id: newRound.id,
+        checklist_item_id: s.checklist_item_id,
+        is_done: false,
+        is_hidden: !!s.is_hidden,
+        sort_order: Number(s.sort_order) || 9999,
+        updated_by: nullIfEmpty(state.currentUserId),
+      }));
+
+      const statusRes = await db.from("checklist_statuses").insert(copiedStatuses);
+      throwIfError(statusRes);
+    }
+
+    await insertLog({
+      target_type: "차수",
+      course_id: source.course_id,
+      round_id: newRound.id,
+      action_type: "복사",
+      change_summary: `${source.round_no}차를 ${nextNo}차로 복사`,
+    });
+
+    await loadAll();
+    state.selectedCourseId = source.course_id;
+    renderCourseModalRounds(source.course_id);
+    alert(`${nextNo}차가 복사되었습니다. 일정은 새 차수에서 수정해주세요.`);
+  } catch (error) {
+    console.error(error);
+    alert("차수 복사 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
 
 async function hideCurrentRound() {
   const id = document.getElementById("roundId").value;
@@ -1679,8 +1853,12 @@ window.openCompleteModal = function(roundId) {
   document.getElementById("completeRoundInfo").textContent =
     `${round.round_no}차 · ${round.round_name || ""} · ${round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || ""}`;
 
+  ensureCompleteSatisfactionUI();
+
   document.getElementById("completeParticipantCount").value = round.participant_count || "";
-  document.getElementById("completeSatisfaction").value = round.satisfaction || "";
+  document.getElementById("completeSatisfaction").value = formatDecimal2ForInput(round.satisfaction);
+  setValueIfExists("completeInstructorSatisfaction", formatDecimal2ForInput(round.instructor_satisfaction));
+  setValueIfExists("completeOperationSatisfaction", formatDecimal2ForInput(round.operation_satisfaction));
   document.getElementById("completeOperationHours").value = round.operation_hours || "";
   document.getElementById("completeRemarks").value = round.remarks || "";
 
@@ -1698,7 +1876,9 @@ async function submitCompleteRound(event) {
     const payload = {
       status: "completed",
       participant_count: toNumberOrNull(document.getElementById("completeParticipantCount").value),
-      satisfaction: toNumberOrNull(document.getElementById("completeSatisfaction").value),
+      satisfaction: toDecimal2OrNull(document.getElementById("completeSatisfaction").value),
+      instructor_satisfaction: toDecimal2OrNull(getValueIfExists("completeInstructorSatisfaction")),
+      operation_satisfaction: toDecimal2OrNull(getValueIfExists("completeOperationSatisfaction")),
       operation_hours: toNumberOrNull(document.getElementById("completeOperationHours").value),
       remarks: document.getElementById("completeRemarks").value.trim() || null,
       completed_at: new Date().toISOString(),
@@ -2503,6 +2683,132 @@ function renderSupportManagerTags() {
 
 window.removeSupportManagerTag = removeSupportManagerTag;
 
+
+// ---------------------------------------------------------
+// 차수별 현장운영자 태그
+// ---------------------------------------------------------
+function ensureRoundSatisfactionUI() {
+  const satisfactionInput = document.getElementById("satisfaction");
+  if (!satisfactionInput || document.getElementById("instructorSatisfaction")) return;
+
+  const anchor = satisfactionInput.closest(".form-field") || satisfactionInput.parentElement;
+  if (!anchor) return;
+
+  anchor.insertAdjacentHTML("afterend", `
+    <label class="form-field">
+      <span>강사 만족도</span>
+      <input id="instructorSatisfaction" class="input" type="number" step="0.01" min="0" max="5" placeholder="예: 4.80" />
+    </label>
+    <label class="form-field">
+      <span>운영 만족도</span>
+      <input id="operationSatisfaction" class="input" type="number" step="0.01" min="0" max="5" placeholder="예: 4.75" />
+    </label>
+  `);
+}
+
+function ensureCompleteSatisfactionUI() {
+  const satisfactionInput = document.getElementById("completeSatisfaction");
+  if (!satisfactionInput || document.getElementById("completeInstructorSatisfaction")) return;
+
+  const anchor = satisfactionInput.closest(".form-field") || satisfactionInput.parentElement;
+  if (!anchor) return;
+
+  anchor.insertAdjacentHTML("afterend", `
+    <label class="form-field">
+      <span>강사 만족도</span>
+      <input id="completeInstructorSatisfaction" class="input" type="number" step="0.01" min="0" max="5" placeholder="예: 4.80" />
+    </label>
+    <label class="form-field">
+      <span>운영 만족도</span>
+      <input id="completeOperationSatisfaction" class="input" type="number" step="0.01" min="0" max="5" placeholder="예: 4.75" />
+    </label>
+  `);
+}
+
+function ensureRoundFieldManagerUI() {
+  if (document.getElementById("roundFieldManagerSelect")) return;
+
+  const venueInput = document.getElementById("roundVenue");
+  const anchor = venueInput?.closest(".form-field") || venueInput?.parentElement;
+  if (!anchor) return;
+
+  anchor.insertAdjacentHTML("afterend", `
+    <label class="form-field round-field-manager-block">
+      <span class="field-label">차수별 현장운영자</span>
+      <div class="support-select-row">
+        <select id="roundFieldManagerSelect" class="input manager-field">
+          <option value="">차수별 현장운영자 선택</option>
+        </select>
+        <button type="button" class="btn-secondary" onclick="addRoundFieldManagerTag()">추가</button>
+      </div>
+      <div id="roundFieldManagerTags" class="support-tags"></div>
+    </label>
+  `);
+}
+
+function fillRoundFieldManagerSelect() {
+  const select = document.getElementById("roundFieldManagerSelect");
+  if (!select) return;
+
+  select.innerHTML = `<option value="">차수별 현장운영자 선택</option>`;
+  state.members.forEach((member) => {
+    const option = document.createElement("option");
+    option.value = member.id;
+    option.textContent = `${member.name}${member.position ? " (" + member.position + ")" : ""}`;
+    select.appendChild(option);
+  });
+}
+
+function addRoundFieldManagerTag() {
+  const select = document.getElementById("roundFieldManagerSelect");
+  const memberId = select?.value;
+
+  if (!memberId) {
+    alert("차수별 현장운영자를 선택해주세요.");
+    return;
+  }
+
+  if (state.selectedRoundFieldManagerIds.includes(memberId)) {
+    alert("이미 추가된 현장운영자입니다.");
+    return;
+  }
+
+  state.selectedRoundFieldManagerIds.push(memberId);
+  select.value = "";
+  renderRoundFieldManagerTags();
+}
+
+function removeRoundFieldManagerTag(memberId) {
+  state.selectedRoundFieldManagerIds = state.selectedRoundFieldManagerIds.filter((id) => id !== memberId);
+  renderRoundFieldManagerTags();
+}
+
+function renderRoundFieldManagerTags() {
+  const container = document.getElementById("roundFieldManagerTags");
+  if (!container) return;
+
+  if (!state.selectedRoundFieldManagerIds.length) {
+    container.innerHTML = `<div class="support-empty">차수별 현장운영자가 없습니다.</div>`;
+    return;
+  }
+
+  container.innerHTML = state.selectedRoundFieldManagerIds.map((memberId) => {
+    const member = state.members.find((m) => m.id === memberId);
+    const name = member ? `${member.name}${member.position ? " / " + member.position : ""}` : "알 수 없음";
+
+    return `
+      <span class="support-tag round-field-tag">
+        <i class="fa-solid fa-location-dot"></i>
+        ${escapeHtml(name)}
+        <button type="button" onclick="removeRoundFieldManagerTag('${memberId}')">×</button>
+      </span>
+    `;
+  }).join("");
+}
+
+window.addRoundFieldManagerTag = addRoundFieldManagerTag;
+window.removeRoundFieldManagerTag = removeRoundFieldManagerTag;
+
 // ---------------------------------------------------------
 // 데이터 업데이트 / 엑셀 다운로드
 // ---------------------------------------------------------
@@ -2561,9 +2867,12 @@ function downloadExcel() {
     "교육종료일",
     "교육일정표기",
     "차수상태",
+    "차수별 현장운영자",
     "운영장소",
     "운영시간",
     "전반만족도",
+    "강사만족도",
+    "운영만족도",
     "교육인원",
     "차수비고",
     "특이사항"
@@ -2601,6 +2910,7 @@ function downloadExcel() {
         "",
         "",
         "",
+        "",
         course.notes
       ]);
     } else {
@@ -2626,9 +2936,12 @@ function downloadExcel() {
           round.end_date_ymd,
           round.date_label,
           STATUS_LABELS[round.status] || round.status,
+          getRoundFieldManagerNames(round.field_manager_ids),
           round.venue,
           round.operation_hours,
-          round.satisfaction,
+          formatDecimal2ForInput(round.satisfaction),
+          formatDecimal2ForInput(round.instructor_satisfaction),
+          formatDecimal2ForInput(round.operation_satisfaction),
           round.participant_count,
           round.remarks,
           course.notes
@@ -2708,6 +3021,31 @@ function getSupportManagerNames(ids) {
     .join(", ");
 }
 
+function getRoundFieldManagerNames(ids) {
+  if (!ids || !ids.length) return "";
+  return ids
+    .map((id) => getMemberName(id))
+    .filter(Boolean)
+    .join(", ");
+}
+
+function getRoundFieldShortNames(ids, limit = 2) {
+  if (!ids || !ids.length) return "";
+
+  const names = ids
+    .map((id) => {
+      const member = state.members.find((m) => m.id === id);
+      return member?.name || "";
+    })
+    .filter(Boolean);
+
+  if (!names.length) return "";
+
+  const visible = names.slice(0, limit).join(", ");
+  const extraCount = names.length - limit;
+  return extraCount > 0 ? `${visible} +${extraCount}` : visible;
+}
+
 function getRoleLabel(course, memberId) {
   if (course.business_manager_id === memberId) return "사업담당자";
   if (course.main_manager_id === memberId) return "운영PM";
@@ -2721,7 +3059,7 @@ function getRoleChipClass(role) {
   if (role === "사업담당자") return "role-business";
   if (role === "운영PM") return "role-pm";
   if (role === "운영보조1" || role === "운영보조2") return "role-sub";
-  if (role === "현장지원") return "role-field";
+  if (role === "현장지원" || role === "현장운영") return "role-field";
   return "role-sub";
 }
 
@@ -2730,7 +3068,7 @@ function getRoleShortLabel(role) {
   if (role === "운영PM") return "PM";
   if (role === "운영보조1") return "보조1";
   if (role === "운영보조2") return "보조2";
-  if (role === "현장지원") return "현장";
+  if (role === "현장지원" || role === "현장운영") return "현장";
   return role;
 }
 
@@ -2785,6 +3123,40 @@ function toNumberOrNull(value) {
   if (value === "" || value === null || value === undefined) return null;
   const num = Number(value);
   return Number.isNaN(num) ? null : num;
+}
+
+function toDecimal2OrNull(value) {
+  if (value === "" || value === null || value === undefined) return null;
+  const num = Number(value);
+  if (Number.isNaN(num)) return null;
+  return Number(num.toFixed(2));
+}
+
+function formatDecimal2ForInput(value) {
+  if (value === "" || value === null || value === undefined) return "";
+  const num = Number(value);
+  return Number.isNaN(num) ? "" : num.toFixed(2);
+}
+
+function getValueIfExists(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : "";
+}
+
+function setValueIfExists(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value || "";
+}
+
+function getCourseCompletedDate(course) {
+  const courseRounds = state.rounds.filter((round) => round.course_id === course.id && round.status === "completed");
+  const latestRoundDate = courseRounds
+    .map((round) => round.end_date_ymd || round.start_date_ymd || round.completed_at || round.updated_at)
+    .filter(Boolean)
+    .sort()
+    .pop();
+
+  return latestRoundDate || course.end_date_ymd || course.updated_at || course.created_at;
 }
 
 function makeDateLabel(start, end) {
