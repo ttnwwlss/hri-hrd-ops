@@ -561,10 +561,12 @@ function renderRR() {
   const container = document.getElementById("rrView");
   const courses = getFilteredCourses();
 
+  const activeWorkStatuses = ["ready", "running"];
+
   let html = `<div class="rr-grid">`;
 
   state.members.forEach((member) => {
-    const assigned = courses.filter((course) => {
+    const assignedAll = courses.filter((course) => {
       const managerIds = [
         course.business_manager_id,
         course.main_manager_id,
@@ -576,6 +578,11 @@ function renderRR() {
       return managerIds.includes(member.id);
     });
 
+    // 업무량 판단 및 기본 노출 목록은 준비중/운영중만 포함
+    const assigned = assignedAll.filter((course) =>
+      activeWorkStatuses.includes(course.status)
+    );
+
     const businessCourses = assigned.filter((course) => course.business_manager_id === member.id);
     const pmCourses = assigned.filter((course) => course.main_manager_id === member.id);
     const assistCourses = assigned.filter((course) =>
@@ -586,6 +593,10 @@ function renderRR() {
     );
 
     const loadStatus = getLoadStatus(assigned.length);
+
+    const visibleAssigned = assigned.slice(0, 3);
+    const hiddenAssigned = assigned.slice(3);
+    const moreAreaId = `rr-more-${member.id}`;
 
     html += `
       <div class="rr-card">
@@ -624,36 +635,31 @@ function renderRR() {
         <div class="rr-section-title">
           담당 프로젝트
           <span>
-            (사업 ${businessCourses.length} / PM ${pmCourses.length} / 보조 ${assistCourses.length} / 현장 ${fieldCourses.length})
+            준비중/운영중 기준 · 사업 ${businessCourses.length} / PM ${pmCourses.length} / 보조 ${assistCourses.length} / 현장 ${fieldCourses.length}
           </span>
         </div>
 
         <div class="rr-project-list">
           ${
             assigned.length
-              ? assigned.map((course) => {
-                  const role = getRoleLabel(course, member.id);
-                  const period = makeDateLabel(course.start_date_ymd, course.end_date_ymd)
-                    || makeMonthRangeLabel(course)
-                    || "-";
+              ? `
+                ${visibleAssigned.map((course) => renderRRProjectItem(course, member.id)).join("")}
 
-                  return `
-                    <div class="rr-project-item" onclick="openCourseModalById('${course.id}')">
-                      <div class="rr-project-main">
-                        <span class="rr-status-dot dot-${course.status}"></span>
-                        <b>${escapeHtml(course.course_name)}</b>
+                ${
+                  hiddenAssigned.length
+                    ? `
+                      <div id="${moreAreaId}" class="hidden">
+                        ${hiddenAssigned.map((course) => renderRRProjectItem(course, member.id)).join("")}
                       </div>
 
-                      <div class="rr-project-sub">
-                        <span class="role-chip ${getRoleChipClass(role)}">
-                          ${escapeHtml(getRoleShortLabel(role))}
-                        </span>
-                        <span>${escapeHtml(period)}</span>
-                      </div>
-                    </div>
-                  `;
-                }).join("")
-              : `<div class="rr-empty">현재 배정된 과정 없음</div>`
+                      <button type="button" class="rr-more-btn" onclick="toggleRRMore('${moreAreaId}', this)">
+                        +${hiddenAssigned.length}개 더보기
+                      </button>
+                    `
+                    : ""
+                }
+              `
+              : `<div class="rr-empty">현재 준비중/운영중인 담당 프로젝트 없음</div>`
           }
         </div>
       </div>
@@ -672,6 +678,44 @@ function renderLogs() {
     return;
   }
 
+  function renderRRProjectItem(course, memberId) {
+  const role = getRoleLabel(course, memberId);
+  const period = makeDateLabel(course.start_date_ymd, course.end_date_ymd)
+    || makeMonthRangeLabel(course)
+    || "-";
+
+  return `
+    <div class="rr-project-item" onclick="openCourseModalById('${course.id}')">
+      <div class="rr-project-main">
+        <span class="rr-status-dot dot-${course.status}"></span>
+        <b>${escapeHtml(course.course_name)}</b>
+      </div>
+
+      <div class="rr-project-sub">
+        <span class="role-chip ${getRoleChipClass(role)}">
+          ${escapeHtml(getRoleShortLabel(role))}
+        </span>
+        <span>${escapeHtml(period)}</span>
+      </div>
+    </div>
+  `;
+}
+
+window.toggleRRMore = function(areaId, button) {
+  const area = document.getElementById(areaId);
+  if (!area) return;
+
+  const isHidden = area.classList.contains("hidden");
+  area.classList.toggle("hidden", !isHidden);
+
+  if (isHidden) {
+    button.textContent = "접기";
+  } else {
+    const hiddenCount = area.querySelectorAll(".rr-project-item").length;
+    button.textContent = `+${hiddenCount}개 더보기`;
+  }
+};
+  
   container.innerHTML = `
     <div class="course-card">
       <h3 class="font-black text-[#0f2742] mb-4">최근 수정이력 30개</h3>
