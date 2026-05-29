@@ -351,7 +351,7 @@ function renderTimeline() {
 
     html += `
       <div
-        class="timeline-grid timeline-row-block"
+        class="timeline-grid timeline-row-block timeline-row-${course.status}"
         draggable="true"
         data-course-id="${course.id}"
         ondragstart="handleTimelineDragStart(event, '${course.id}')"
@@ -378,7 +378,10 @@ function renderTimeline() {
 
         <div class="timeline-title-area" onclick="openCourseModalById('${course.id}')">
           <div class="timeline-title-main">${escapeHtml(course.course_name)}</div>
-          <div class="small-muted">${escapeHtml(course.client_name || "")} · ${statusText(course.status)}</div>
+          <div class="timeline-title-sub">
+            <span class="timeline-status-mini timeline-status-mini-${course.status}">${statusText(course.status)}</span>
+            <span>${escapeHtml(course.client_name || "")}</span>
+          </div>
         </div>
       </div>
     `;
@@ -387,7 +390,7 @@ function renderTimeline() {
       const active = month >= start && month <= end;
       html += `
         <div
-          class="timeline-cell ${active ? "active" : ""}"
+          class="timeline-cell ${active ? `active timeline-status-${course.status}` : ""}"
           onclick="openCourseModalById('${course.id}')"
         ></div>
       `;
@@ -1886,22 +1889,27 @@ function getChecklistItemsByScope(scope, courseId = null, roundId = null) {
 window.openChecklistEditModal = async function(courseId, roundIdRaw, scope, containerId) {
   const roundId = roundIdRaw || null;
 
-  document.getElementById("checklistEditCourseId").value = courseId;
-  document.getElementById("checklistEditRoundId").value = roundId || "";
-  document.getElementById("checklistEditScope").value = scope;
-  document.getElementById("newChecklistTitle").value = "";
+  try {
+    document.getElementById("checklistEditCourseId").value = courseId;
+    document.getElementById("checklistEditRoundId").value = roundId || "";
+    document.getElementById("checklistEditScope").value = scope;
+    document.getElementById("newChecklistTitle").value = "";
 
-  const course = getCourseById(courseId);
-  const round = roundId ? state.rounds.find((r) => r.id === roundId) : null;
+    const course = getCourseById(courseId);
+    const round = roundId ? state.rounds.find((r) => r.id === roundId) : null;
 
-  document.getElementById("checklistEditInfo").textContent =
-    scope === "round"
-      ? `${course?.course_name || ""} · ${round?.round_no || ""}차 ${round?.round_name || ""}에만 적용됩니다.`
-      : `${course?.course_name || ""} 프로젝트에만 적용됩니다.`;
+    document.getElementById("checklistEditInfo").textContent =
+      scope === "round"
+        ? `${course?.course_name || ""} · ${round?.round_no || ""}차 ${round?.round_name || ""}에만 적용됩니다.`
+        : `${course?.course_name || ""} 프로젝트에만 적용됩니다.`;
 
-  await ensureChecklistStatuses(courseId, roundId, scope);
-  renderChecklistEditList(courseId, roundId, scope, containerId);
-  openModal("checklistEditModal");
+    await ensureChecklistStatuses(courseId, roundId, scope);
+    renderChecklistEditList(courseId, roundId, scope, containerId);
+    openModal("checklistEditModal");
+  } catch (error) {
+    console.error(error);
+    alert("체크리스트 수정 창을 여는 중 오류가 발생했습니다.\n\n" + error.message);
+  }
 };
 
 function renderChecklistEditList(courseId, roundId = null, scope = "course", containerId = "") {
@@ -1966,7 +1974,7 @@ async function addCustomChecklistItem() {
 
   try {
     const payload = {
-      code: "CUSTOM",
+      code: makeCustomChecklistCode(scope),
       title,
       scope,
       is_custom: true,
@@ -2667,6 +2675,13 @@ function getLoadStatus(count) {
     label: `정상 (0)`,
     className: "load-low",
   };
+}
+
+function makeCustomChecklistCode(scope) {
+  const prefix = scope === "round" ? "R-CUSTOM" : "P-CUSTOM";
+  const stamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).slice(2, 7).toUpperCase();
+  return `${prefix}-${stamp}-${random}`;
 }
 
 function csvEscape(value) {
