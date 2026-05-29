@@ -371,7 +371,6 @@ function renderTimeline() {
             <i class="fa-solid fa-chevron-down"></i>
           </button>
         </div>
-
         <div class="timeline-drag-handle" title="드래그해서 순서 변경">
           <i class="fa-solid fa-grip-vertical"></i>
         </div>
