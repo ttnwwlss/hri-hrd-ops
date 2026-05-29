@@ -2215,3 +2215,41 @@ body {
   text-decoration: line-through;
   color: #94a3b8;
 }
+
+
+/* 담당자별 R&R 실적 요약 */
+.rr-result-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 10px 0 14px;
+  padding: 10px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.rr-result-summary div {
+  text-align: center;
+}
+
+.rr-result-summary b {
+  display: block;
+  font-size: 16px;
+  font-weight: 900;
+  color: #0f2742;
+}
+
+.rr-result-summary span {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #64748b;
+}
+
+@media (max-width: 720px) {
+  .rr-result-summary {
+    grid-template-columns: 1fr;
+  }
+}
