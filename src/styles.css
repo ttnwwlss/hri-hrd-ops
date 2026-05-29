@@ -1636,3 +1636,461 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* =========================================================
+   주간 레이어 캘린더형 보기
+   ========================================================= */
+
+.weekly-calendar-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 20px rgba(15, 39, 66, 0.05);
+}
+
+.weekly-calendar-summary b {
+  display: block;
+  font-size: 16px;
+  font-weight: 900;
+  color: #0f2742;
+}
+
+.weekly-calendar-summary span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.weekly-calendar-table {
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  overflow-x: auto;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(15, 39, 66, 0.08);
+}
+
+.weekly-calendar-head {
+  display: grid;
+  grid-template-columns: 120px repeat(7, minmax(130px, 1fr));
+  min-width: 1060px;
+  background: #0f2742;
+  color: #ffffff;
+}
+
+.weekly-calendar-head > div {
+  padding: 12px 10px;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.12);
+}
+
+.weekly-calendar-body {
+  min-width: 1060px;
+}
+
+.weekly-calendar-row {
+  display: grid;
+  grid-template-columns: 120px repeat(7, minmax(130px, 1fr));
+  border-top: 1px solid #e2e8f0;
+}
+
+.weekly-week-label {
+  background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.weekly-week-label strong {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f2742;
+}
+
+.weekly-week-label span {
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.weekly-week-label em {
+  width: fit-content;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.weekly-day-cell {
+  min-height: 150px;
+  padding: 8px;
+  border-right: 1px solid #e2e8f0;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.weekly-day-cell.other-month {
+  background: #f8fafc;
+}
+
+.weekly-day-cell.today {
+  box-shadow: inset 0 0 0 2px #2563eb;
+  background: #eff6ff;
+}
+
+.weekly-day-number {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.weekly-day-number span {
+  width: 25px;
+  height: 25px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.weekly-day-cell.today .weekly-day-number span {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.weekly-day-cell.other-month .weekly-day-number span {
+  color: #cbd5e1;
+}
+
+.weekly-day-events {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.weekly-calendar-event {
+  border-radius: 10px;
+  padding: 7px 8px;
+  cursor: pointer;
+  transition: all 0.14s ease;
+  border: 1px solid transparent;
+}
+
+.weekly-calendar-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(15, 39, 66, 0.12);
+}
+
+.weekly-calendar-event.event-round {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.weekly-calendar-event.event-course {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+}
+
+.weekly-calendar-event-title {
+  display: flex;
+  gap: 5px;
+  align-items: flex-start;
+  font-size: 11px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.weekly-calendar-event-title span {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  border-radius: 5px;
+  background: #0f2742;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.weekly-calendar-event-meta {
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.weekly-day-empty {
+  min-height: 42px;
+  border: 1px dashed #e2e8f0;
+  border-radius: 10px;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.weekly-day-more {
+  border: 1px dashed #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  border-radius: 9px;
+  padding: 6px 8px;
+  font-size: 10px;
+  font-weight: 900;
+  transition: all 0.14s ease;
+}
+
+.weekly-day-more:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.weekly-day-detail-area {
+  margin-top: 16px;
+}
+
+.weekly-detail-panel {
+  border: 1px solid #bfdbfe;
+  border-radius: 18px;
+  background: #eff6ff;
+  padding: 14px;
+}
+
+.weekly-detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.weekly-detail-head b {
+  display: block;
+  font-size: 15px;
+  font-weight: 900;
+  color: #0f2742;
+}
+
+.weekly-detail-head span {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.weekly-detail-head button {
+  border-radius: 999px;
+  background: #0f2742;
+  color: #ffffff;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.weekly-detail-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.weekly-detail-item {
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.weekly-detail-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.weekly-detail-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.weekly-detail-meta {
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .weekly-calendar-summary {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+
+/* =========================================================
+   연간 타임라인 순서 조정 UI
+   ========================================================= */
+
+.timeline-guide {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.timeline-guide b {
+  display: block;
+  font-size: 15px;
+  font-weight: 900;
+  color: #0f2742;
+}
+
+.timeline-guide span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.timeline-header-grid {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #ffffff;
+  padding-bottom: 4px;
+}
+
+.timeline-row-block {
+  border-radius: 14px;
+  padding: 6px;
+  background: #ffffff;
+  border: 1px solid transparent;
+  transition: all 0.16s ease;
+}
+
+.timeline-row-block:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.08);
+}
+
+.timeline-row-block.is-dragging {
+  opacity: 0.45;
+  transform: scale(0.995);
+}
+
+.timeline-row-block.is-drop-target {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.timeline-name-block {
+  display: grid;
+  grid-template-columns: 28px 22px 1fr;
+  gap: 7px;
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 11px;
+  padding: 7px;
+}
+
+.timeline-row-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.timeline-row-actions button {
+  width: 24px;
+  height: 20px;
+  border-radius: 7px;
+  background: #e2e8f0;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  transition: all 0.14s ease;
+}
+
+.timeline-row-actions button:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.timeline-drag-handle {
+  color: #94a3b8;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timeline-drag-handle:active {
+  cursor: grabbing;
+}
+
+.timeline-title-area {
+  min-width: 0;
+  cursor: pointer;
+}
+
+.timeline-title-main {
+  font-size: 13px;
+  font-weight: 900;
+  color: #0f2742;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-row-block .timeline-cell {
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .timeline-guide {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
