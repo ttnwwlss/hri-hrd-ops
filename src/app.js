@@ -33,6 +33,23 @@ let state = {
   selectedSupportManagerIds: [],
 };
 
+// ---------------------------------------------------------
+// 공통 유틸 함수
+// ---------------------------------------------------------
+function formatTinyDate(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const yy = String(date.getFullYear()).slice(2);
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+
+  return `${yy}.${mm}.${dd}`;
+}
+
+
 document.addEventListener("DOMContentLoaded", async () => {
   bindEvents();
   fillStaticSelects();
@@ -675,19 +692,6 @@ function renderLogs() {
 }
 
 
-
-function formatTinyDate(value) {
-  if (!value) return "";
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-
-  const yy = String(date.getFullYear()).slice(2);
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-
-  return `${yy}.${mm}.${dd}`;
-}
 
 
 // ---------------------------------------------------------
@@ -2080,8 +2084,8 @@ window.hideChecklistItem = async function(courseId, roundIdRaw, itemId, scope, c
 
     await insertLog({
       target_type: "체크리스트",
-      course_id,
-      round_id,
+      course_id: courseId,
+      round_id: roundId,
       action_type: "숨김처리",
       change_summary: `체크리스트 항목 삭제/숨김 처리`,
     });
@@ -2118,8 +2122,8 @@ window.restoreChecklistItem = async function(courseId, roundIdRaw, itemId, scope
 
     await insertLog({
       target_type: "체크리스트",
-      course_id,
-      round_id,
+      course_id: courseId,
+      round_id: roundId,
       action_type: "복원",
       change_summary: `체크리스트 항목 복원`,
     });
