@@ -450,6 +450,10 @@ function renderKanban() {
       });
     }
 
+    const completedHint = status === "completed"
+      ? `<span class="kanban-header-hint">최근 수정순 · 내부 스크롤</span>`
+      : "";
+
     return `
       <div class="kanban-column-v2 kanban-${status}">
         <div class="kanban-header-v2">
@@ -1739,6 +1743,7 @@ window.duplicateRound = async function(roundId) {
 
   try {
     const nextNo = getNextRoundNo(source.course_id);
+
     const payload = {
       course_id: source.course_id,
       round_no: nextNo,
@@ -1751,6 +1756,8 @@ window.duplicateRound = async function(roundId) {
       field_manager_ids: Array.isArray(source.field_manager_ids) ? source.field_manager_ids : [],
       round_memo: source.round_memo || null,
       remarks: source.remarks || null,
+
+      // 완료 실적은 복사하지 않음
       operation_hours: null,
       satisfaction: null,
       instructor_satisfaction: null,
@@ -1765,6 +1772,45 @@ window.duplicateRound = async function(roundId) {
 
     const newRound = roundRes.data;
 
+    // 1) 차수 전용 커스텀 체크리스트 항목 복사
+    //    기본 체크리스트는 그대로 같은 checklist_item_id를 사용하고,
+    //    차수 전용 직접추가 항목은 새 차수용 항목으로 새로 생성한다.
+    const sourceCustomItems = state.checklistItems.filter(
+      (item) =>
+        item.is_custom &&
+        item.course_id === source.course_id &&
+        normalizeId(item.round_id) === normalizeId(source.id)
+    );
+
+    const checklistItemIdMap = {};
+
+    if (sourceCustomItems.length) {
+      const copiedItemsPayload = sourceCustomItems.map((item) => ({
+        title: item.title,
+        code: item.code || "CUSTOM",
+        scope: item.scope || "round",
+        course_id: source.course_id,
+        round_id: newRound.id,
+        is_custom: true,
+        is_active: true,
+        sort_order: Number(item.sort_order) || 9999,
+        updated_by: nullIfEmpty(state.currentUserId),
+      }));
+
+      const itemRes = await db
+        .from("checklist_items")
+        .insert(copiedItemsPayload)
+        .select();
+
+      throwIfError(itemRes);
+
+      (itemRes.data || []).forEach((newItem, index) => {
+        checklistItemIdMap[sourceCustomItems[index].id] = newItem.id;
+      });
+    }
+
+    // 2) 체크리스트 상태 복사
+    //    완료 여부/체크일은 복사하지 않고, 숨김/순서만 복사한다.
     const sourceStatuses = state.checklistStatuses.filter(
       (s) => normalizeId(s.round_id) === normalizeId(source.id) && s.course_id === source.course_id
     );
@@ -1773,7 +1819,7 @@ window.duplicateRound = async function(roundId) {
       const copiedStatuses = sourceStatuses.map((s) => ({
         course_id: source.course_id,
         round_id: newRound.id,
-        checklist_item_id: s.checklist_item_id,
+        checklist_item_id: checklistItemIdMap[s.checklist_item_id] || s.checklist_item_id,
         is_done: false,
         is_hidden: !!s.is_hidden,
         sort_order: Number(s.sort_order) || 9999,
