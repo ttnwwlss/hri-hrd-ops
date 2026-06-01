@@ -24,6 +24,7 @@ let state = {
   members: [],
   courses: [],
   rounds: [],
+  hiddenRounds: [],
   checklistItems: [],
   checklistStatuses: [],
   logs: [],
@@ -139,6 +140,7 @@ async function loadAll() {
       membersRes,
       coursesRes,
       roundsRes,
+      hiddenRoundsRes,
       checklistItemsRes,
       checklistStatusesRes,
       logsRes
@@ -146,6 +148,7 @@ async function loadAll() {
       db.from("members").select("*").eq("is_active", true).order("sort_order", { ascending: true }),
       db.from("courses").select("*").eq("is_active", true).order("created_at", { ascending: false }),
       db.from("rounds").select("*").eq("is_active", true).order("round_no", { ascending: true }),
+      db.from("rounds").select("*").eq("is_active", false).order("round_no", { ascending: true }),
       db.from("checklist_items").select("*").eq("is_active", true).order("sort_order", { ascending: true }),
       db.from("checklist_statuses").select("*"),
       db.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(30),
@@ -154,6 +157,7 @@ async function loadAll() {
     throwIfError(membersRes);
     throwIfError(coursesRes);
     throwIfError(roundsRes);
+    throwIfError(hiddenRoundsRes);
     throwIfError(checklistItemsRes);
     throwIfError(checklistStatusesRes);
     throwIfError(logsRes);
@@ -161,6 +165,7 @@ async function loadAll() {
     state.members = membersRes.data || [];
     state.courses = coursesRes.data || [];
     state.rounds = roundsRes.data || [];
+    state.hiddenRounds = hiddenRoundsRes.data || [];
     state.checklistItems = checklistItemsRes.data || [];
     state.checklistStatuses = checklistStatusesRes.data || [];
     state.logs = logsRes.data || [];
@@ -546,28 +551,7 @@ function renderCourseMiniCard(course) {
           세부 과정 정보 (${rounds.length}개)
         </div>
 
-        ${
-          rounds.length
-            ? rounds.slice(0, 3).map((round) => {
-              const fieldText = getRoundFieldShortNames(round.field_manager_ids, 2);
-              return `
-                <div class="round-preview-item round-preview-item-with-field">
-                  <span class="round-dot dot-${round.status}"></span>
-                  <span class="round-preview-name">${round.round_no}. ${escapeHtml(round.round_name || "")}</span>
-                  <span class="round-preview-date">${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</span>
-                  ${round.venue ? `<span class="round-preview-venue">장소: ${escapeHtml(round.venue)}</span>` : ""}
-                  ${fieldText ? `<span class="round-preview-field">현장: ${escapeHtml(fieldText)}</span>` : ""}
-                </div>
-              `;
-            }).join("")
-            : `<div class="small-muted">등록된 세부 과정 없음</div>`
-        }
-
-        ${
-          rounds.length > 3
-            ? `<div class="small-muted mt-1">외 ${rounds.length - 3}개 세부 과정</div>`
-            : ""
-        }
+        ${renderKanbanRoundPreview(course.id, rounds)}
       </div>
 
       <div class="kanban-card-footer">
@@ -583,6 +567,58 @@ function renderCourseMiniCard(course) {
     </div>
   `;
 }
+
+
+function renderKanbanRoundPreview(courseId, rounds) {
+  if (!rounds.length) {
+    return `<div class="small-muted">등록된 세부 과정 없음</div>`;
+  }
+
+  const visibleCount = 2;
+  const visibleRounds = rounds.slice(0, visibleCount);
+  const hiddenRounds = rounds.slice(visibleCount);
+  const moreAreaId = `kanban-round-more-${courseId}`;
+
+  const renderItem = (round, index) => {
+    const fieldText = getRoundFieldShortNames(round.field_manager_ids, 2);
+    const dateText = round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-";
+
+    return `
+      <div class="round-preview-item round-preview-item-with-field">
+        <span class="round-dot dot-${round.status}"></span>
+        <span class="round-preview-name">${index + 1}. ${escapeHtml(round.round_name || "")}</span>
+        <span class="round-preview-date">${escapeHtml(dateText)}</span>
+        ${round.venue ? `<span class="round-preview-venue">장소: ${escapeHtml(round.venue)}</span>` : ""}
+        ${fieldText ? `<span class="round-preview-field">현장: ${escapeHtml(fieldText)}</span>` : ""}
+      </div>
+    `;
+  };
+
+  return `
+    ${visibleRounds.map((round, index) => renderItem(round, index)).join("")}
+    ${
+      hiddenRounds.length
+        ? `
+          <div id="${moreAreaId}" class="kanban-round-more-list hidden">
+            ${hiddenRounds.map((round, index) => renderItem(round, visibleCount + index)).join("")}
+          </div>
+          <button type="button" class="kanban-round-more-btn" onclick="event.stopPropagation(); toggleKanbanRoundMore('${moreAreaId}', this, ${hiddenRounds.length})">
+            +${hiddenRounds.length}개 더보기
+          </button>
+        `
+        : ""
+    }
+  `;
+}
+
+window.toggleKanbanRoundMore = function(areaId, button, hiddenCount) {
+  const area = document.getElementById(areaId);
+  if (!area) return;
+
+  const isHidden = area.classList.contains("hidden");
+  area.classList.toggle("hidden", !isHidden);
+  button.textContent = isHidden ? "접기" : `+${hiddenCount}개 더보기`;
+};
 
 function renderRR() {
   const container = document.getElementById("rrView");
@@ -1332,7 +1368,6 @@ async function openCourseModal(course = null) {
   renderSupportManagerTags();
 
   if (isEdit) {
-    document.getElementById("quickRoundNo").value = getNextRoundNo(course.id);
     document.getElementById("quickRoundStatus").value = "planning";
     renderCourseModalRounds(course.id);
     await ensureChecklistStatuses(course.id, null, "course");
@@ -1512,14 +1547,13 @@ function renderCourseModalRounds(courseId) {
   const container = document.getElementById("courseModalRoundList");
   const rounds = state.rounds
     .filter((r) => r.course_id === courseId)
-    .sort((a, b) => a.round_no - b.round_no);
+    .sort((a, b) => Number(a.round_no || 0) - Number(b.round_no || 0));
 
-  if (!rounds.length) {
-    container.innerHTML = emptyBox("등록된 차수가 없습니다.");
-    return;
-  }
+  const hiddenRounds = (state.hiddenRounds || [])
+    .filter((r) => r.course_id === courseId)
+    .sort((a, b) => Number(a.round_no || 0) - Number(b.round_no || 0));
 
-  container.innerHTML = `
+  const activeTableHtml = rounds.length ? `
     <div class="overflow-x-auto">
       <table class="round-table">
         <thead>
@@ -1535,9 +1569,9 @@ function renderCourseModalRounds(courseId) {
           </tr>
         </thead>
         <tbody>
-          ${rounds.map((round) => `
+          ${rounds.map((round, index) => `
             <tr>
-              <td class="font-bold">${round.round_no}</td>
+              <td class="font-bold">${index + 1}</td>
               <td>${escapeHtml(round.round_name || "-")}</td>
               <td>${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</td>
               <td>${statusBadge(round.status)}</td>
@@ -1560,6 +1594,47 @@ function renderCourseModalRounds(courseId) {
         </tbody>
       </table>
     </div>
+  ` : emptyBox("표시 중인 세부 과정이 없습니다.");
+
+  const hiddenTableHtml = hiddenRounds.length ? `
+    <details class="hidden-rounds-box">
+      <summary>숨김 처리된 세부 과정 ${hiddenRounds.length}개 보기</summary>
+      <div class="overflow-x-auto mt-3">
+        <table class="round-table hidden-round-table">
+          <thead>
+            <tr>
+              <th>내부번호</th>
+              <th>세부 과정명</th>
+              <th>일정</th>
+              <th>상태</th>
+              <th>장소</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${hiddenRounds.map((round) => `
+              <tr class="hidden-round-row">
+                <td class="font-bold small-muted">${round.round_no || "-"}</td>
+                <td>${escapeHtml(round.round_name || "-")}</td>
+                <td>${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</td>
+                <td>${statusBadge(round.status)}</td>
+                <td><span class="small-muted">${escapeHtml(round.venue || "-")}</span></td>
+                <td>
+                  <button type="button" class="btn-secondary" onclick="restoreRound('${round.id}')">다시 보이기</button>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  ` : `
+    <div class="hidden-rounds-empty">숨김 처리된 세부 과정이 없습니다.</div>
+  `;
+
+  container.innerHTML = `
+    ${activeTableHtml}
+    ${hiddenTableHtml}
   `;
 }
 
@@ -1584,8 +1659,7 @@ async function quickAddRound() {
   }
 
   try {
-    const requestedRoundNo = document.getElementById("quickRoundNo").value;
-    const nextRoundNo = requestedRoundNo ? Number(requestedRoundNo) : await getNextRoundNoFromDb(courseId);
+    const nextRoundNo = await getNextRoundNoFromDb(courseId);
 
     const payload = {
       course_id: courseId,
@@ -1616,7 +1690,6 @@ async function quickAddRound() {
 
     await loadAll();
     state.selectedCourseId = courseId;
-    document.getElementById("quickRoundNo").value = getNextRoundNo(courseId);
     renderCourseModalRounds(courseId);
   } catch (error) {
     alert("차수 추가 중 오류가 발생했습니다.\n\n" + error.message);
@@ -1804,6 +1877,45 @@ window.duplicateRound = async function(roundId) {
   } catch (error) {
     console.error(error);
     alert("차수 복사 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
+window.restoreRound = async function(roundId) {
+  const round = (state.hiddenRounds || []).find((r) => r.id === roundId);
+
+  if (!round) {
+    alert("복원할 세부 과정을 찾을 수 없습니다. 데이터를 새로고침한 뒤 다시 시도해주세요.");
+    return;
+  }
+
+  if (!confirm("이 세부 과정을 다시 표시하시겠습니까?")) return;
+
+  try {
+    const response = await db
+      .from("rounds")
+      .update({
+        is_active: true,
+        updated_by: nullIfEmpty(state.currentUserId),
+      })
+      .eq("id", roundId);
+
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "차수",
+      course_id: round.course_id || null,
+      round_id: roundId,
+      action_type: "복원",
+      change_summary: "세부 과정 다시 보이기",
+    });
+
+    await loadAll();
+    state.selectedCourseId = round.course_id;
+    renderCourseModalRounds(round.course_id);
+
+    alert("숨김 처리된 세부 과정을 다시 표시했습니다.");
+  } catch (error) {
+    alert("세부 과정 복원 중 오류가 발생했습니다.\n\n" + error.message);
   }
 };
 
