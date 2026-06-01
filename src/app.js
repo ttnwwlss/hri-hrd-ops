@@ -1,2202 +1,3263 @@
-/* =========================================================
-   HRI HRD사업팀 과정운영 관리 앱 - style.css 정리본
-   중복 체크리스트/더보기/타임라인 CSS 정리 완료
-   ========================================================= */
-
-/* ---------------------------------------------------------
-   Base
-   --------------------------------------------------------- */
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: 'NeoHyundai R', 'NeoHyundai', 'Malgun Gothic', '맑은 고딕', 'Noto Sans KR', sans-serif;
-  color: #1e293b;
-  background:
-    radial-gradient(circle at top left, rgba(37, 99, 235, 0.08), transparent 28%),
-    linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
-}
-
-.hidden {
-  display: none !important;
-}
-
-.small-muted {
-  font-size: 12px;
-  color: #64748b;
-}
-
-/* ---------------------------------------------------------
-   Header
-   --------------------------------------------------------- */
-.app-header {
-  background: linear-gradient(135deg, #071a2f 0%, #0f2742 45%, #173b63 100%);
-  color: #ffffff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 30px rgba(15, 39, 66, 0.25);
-}
-
-.header-select {
-  color: #0f172a;
-  background: #ffffff;
-  border-radius: 999px;
-  padding: 9px 14px;
-  font-size: 13px;
-  min-width: 180px;
-  outline: none;
-}
-
-.sync-badge {
-  font-size: 12px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-  padding: 9px 12px;
-  color: #e2e8f0;
-}
-
-.top-action-btn {
-  border-radius: 999px;
-  padding: 9px 14px;
-  font-size: 13px;
-  font-weight: 800;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  color: #ffffff;
-  transition: all 0.18s ease;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
-  white-space: nowrap;
-}
-
-.top-action-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22);
-}
-
-.member-btn {
-  background: linear-gradient(135deg, #475569, #334155);
-}
-
-.update-btn {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-}
-
-.excel-btn {
-  background: linear-gradient(135deg, #16a34a, #15803d);
-}
-
-/* ---------------------------------------------------------
-   Stats / Filters / Buttons
-   --------------------------------------------------------- */
-.stat-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 18px;
-  padding: 18px;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-  box-shadow: 0 12px 30px rgba(15, 39, 66, 0.08);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stat-card::after {
-  content: "";
-  position: absolute;
-  right: -32px;
-  top: -32px;
-  width: 92px;
-  height: 92px;
-  border-radius: 999px;
-  background: rgba(37, 99, 235, 0.08);
-}
-
-.stat-label {
-  font-size: 13px;
-  color: #64748b;
-  font-weight: 800;
-  margin-bottom: 5px;
-}
-
-.stat-value {
-  font-size: 28px;
-  font-weight: 900;
-  color: #0f2742;
-  letter-spacing: -0.04em;
-}
-
-.stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  z-index: 1;
-}
-
-.filter-panel,
-.timeline-wrapper {
-  background: #ffffff;
-  border-radius: 18px;
-  box-shadow: 0 12px 30px rgba(15, 39, 66, 0.08);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-}
-
-.filter-panel {
-  padding: 16px;
-  margin-bottom: 20px;
-}
-
-.input {
-  width: 100%;
-  border: 1px solid #dbe3ef;
-  border-radius: 11px;
-  padding: 10px 12px;
-  background: #ffffff;
-  font-size: 14px;
-  outline: none;
-  transition: all 0.15s ease;
-}
-
-.input:hover {
-  border-color: #94a3b8;
-}
-
-.input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-}
-
-.btn-primary,
-.btn-secondary,
-.btn-danger,
-.btn-success {
-  border-radius: 11px;
-  padding: 10px 14px;
-  font-weight: 800;
-  font-size: 14px;
-  transition: all 0.16s ease;
-  white-space: nowrap;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #0f2742, #1d4ed8);
-  color: #ffffff;
-}
-
-.btn-secondary {
-  background: #e2e8f0;
-  color: #0f172a;
-}
-
-.btn-danger {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: #ffffff;
-}
-
-.btn-success {
-  background: linear-gradient(135deg, #16a34a, #15803d);
-  color: #ffffff;
-}
-
-.btn-primary:hover,
-.btn-secondary:hover,
-.btn-danger:hover,
-.btn-success:hover {
-  transform: translateY(-1px);
-}
-
-/* ---------------------------------------------------------
-   View Tabs / Generic Cards
-   --------------------------------------------------------- */
-.view-tab {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #334155;
-  padding: 10px 14px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 800;
-  white-space: nowrap;
-  box-shadow: 0 6px 14px rgba(15, 39, 66, 0.06);
-  transition: all 0.18s ease;
-}
-
-.view-tab:hover {
-  transform: translateY(-1px);
-}
-
-.view-tab.active {
-  color: #ffffff;
-  border-color: transparent;
-  background: linear-gradient(135deg, #0f2742, #1d4ed8);
-  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.25);
-}
-
-.view-section {
-  min-height: 300px;
-}
-
-.course-card {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  border-radius: 17px;
-  padding: 16px;
-  box-shadow: 0 8px 20px rgba(15, 39, 66, 0.06);
-  transition: all 0.18s ease;
-}
-
-.course-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(15, 39, 66, 0.12);
-}
-
-/* ---------------------------------------------------------
-   Status
-   --------------------------------------------------------- */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 900;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-}
-
-.status-planning { background: #f1f5f9; color: #475569; }
-.status-ready { background: #dbeafe; color: #1d4ed8; }
-.status-running { background: #fef3c7; color: #b45309; }
-.status-completed { background: #dcfce7; color: #15803d; }
-.status-hold { background: #ede9fe; color: #6d28d9; }
-.status-canceled { background: #fee2e2; color: #b91c1c; }
-
-.kanban-dot,
-.rr-status-dot,
-.round-dot {
-  border-radius: 999px;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
-.kanban-dot,
-.rr-status-dot {
-  width: 10px;
-  height: 10px;
-}
-
-.round-dot {
-  width: 7px;
-  height: 7px;
-}
-
-.dot-planning { background: #94a3b8; }
-.dot-ready { background: #3b82f6; }
-.dot-running { background: #f59e0b; }
-.dot-completed { background: #10b981; }
-.dot-hold { background: #8b5cf6; }
-.dot-canceled { background: #ef4444; }
-
-/* ---------------------------------------------------------
-   Modals / Forms
-   --------------------------------------------------------- */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.58);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 34px 16px;
-  z-index: 999;
-  overflow-y: auto;
-}
-
-.modal.hidden {
-  display: none;
-}
-
-.modal-panel {
-  width: 100%;
-  background: #ffffff;
-  border-radius: 18px;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.34);
-  overflow: hidden;
-}
-
-.modal-header {
-  padding: 18px 20px;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-}
-
-.modal-header.dark {
-  background: linear-gradient(135deg, #071a2f 0%, #0f2742 60%, #173b63 100%);
-  color: #ffffff;
-}
-
-.modal-body {
-  padding: 20px;
-}
-
-.modal-footer {
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.modal-close {
-  font-size: 28px;
-  line-height: 1;
-  color: #64748b;
-}
-
-.modal-close.white {
-  color: #ffffff;
-}
-
-.form-section {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 17px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.form-section-title {
-  font-weight: 900;
-  color: #334155;
-  font-size: 14px;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.form-section-title i {
-  color: #94a3b8;
-}
-
-.form-field span {
-  display: block;
-  font-size: 13px;
-  font-weight: 900;
-  color: #475569;
-  margin-bottom: 6px;
-}
-
-.business-label { color: #7c3aed !important; }
-.pm-label { color: #1d4ed8 !important; }
-.sub-label { color: #d97706 !important; }
-.field-label { color: #c2410c !important; }
-
-.manager-business { border-color: #c4b5fd; }
-.manager-pm { border-color: #93c5fd; }
-.manager-sub { border-color: #fcd34d; }
-.manager-field { border-color: #fed7aa; }
-
-/* ---------------------------------------------------------
-   Rounds
-   --------------------------------------------------------- */
-.round-add-box {
-  display: grid;
-  grid-template-columns: minmax(170px, 1.5fr) 100px 130px 130px 130px 80px;
-  gap: 8px;
-  align-items: center;
-  background: #f8fafc;
-  border-radius: 14px;
-  padding: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-.round-table {
-  width: 100%;
-  border-collapse: collapse;
-  overflow: hidden;
-  border-radius: 14px;
-  background: #ffffff;
-}
-
-.round-table th {
-  background: #f1f5f9;
-  color: #475569;
-  font-size: 12px;
-  padding: 10px;
-  text-align: left;
-}
-
-.round-table td {
-  border-top: 1px solid #e2e8f0;
-  padding: 10px;
-  font-size: 13px;
-}
-
-.completed-box {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 16px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 15px;
-  padding: 14px;
-}
-
-/* ---------------------------------------------------------
-   Support Managers
-   --------------------------------------------------------- */
-.support-select-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
-}
-
-.support-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 8px;
-  min-height: 34px;
-}
-
-.support-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #fff7ed;
-  color: #c2410c;
-  border: 1px solid #fed7aa;
-  border-radius: 999px;
-  padding: 6px 9px;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.support-tag button {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  background: #fdba74;
-  color: #7c2d12;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.support-empty {
-  color: #cbd5e1;
-  font-size: 12px;
-  font-weight: 800;
-  padding: 7px 2px;
-}
-
-/* ---------------------------------------------------------
-   Timeline
-   --------------------------------------------------------- */
-.timeline-wrapper {
-  padding: 18px;
-  overflow-x: auto;
-}
-
-.timeline-guide {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-  padding: 14px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-}
-
-.timeline-guide b {
-  display: block;
-  font-size: 15px;
-  font-weight: 900;
-  color: #0f2742;
-}
-
-.timeline-guide span {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  font-weight: 800;
-  color: #64748b;
-}
-
-.timeline-grid {
-  display: grid;
-  grid-template-columns: 190px repeat(12, minmax(55px, 1fr));
-  gap: 6px;
-  align-items: center;
-  min-width: 920px;
-}
-
-.timeline-header-grid {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: #ffffff;
-  padding-bottom: 4px;
-}
-
-.timeline-month,
-.timeline-month-btn {
-  text-align: center;
-  font-size: 12px;
-  font-weight: 900;
-  color: #475569;
-  background: #f8fafc;
-  border-radius: 9px;
-  padding: 8px 4px;
-}
-
-.timeline-month-btn {
-  border: 0;
-  cursor: pointer;
-  transition: all 0.16s ease;
-}
-
-.timeline-month-btn:hover {
-  background: #dbeafe;
-  color: #1d4ed8;
-  transform: translateY(-1px);
-}
-
-.timeline-row-block {
-  border-radius: 14px;
-  padding: 6px;
-  background: #ffffff;
-  border: 1px solid transparent;
-  transition: all 0.16s ease;
-}
-
-.timeline-row-block:hover {
-  border-color: #bfdbfe;
-  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.08);
-}
-
-.timeline-row-block.is-dragging {
-  opacity: 0.45;
-  transform: scale(0.995);
-}
-
-.timeline-row-block.is-drop-target {
-  border-color: #2563eb;
-  background: #eff6ff;
-}
-
-.timeline-name {
-  font-size: 13px;
-  font-weight: 900;
-  color: #0f2742;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.timeline-name-block {
-  display: grid;
-  grid-template-columns: 28px 22px 1fr;
-  gap: 7px;
-  align-items: center;
-  background: #f8fafc;
-  border-radius: 11px;
-  padding: 7px;
-}
-
-.timeline-row-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.timeline-row-actions button {
-  width: 24px;
-  height: 20px;
-  border-radius: 7px;
-  background: #e2e8f0;
-  color: #475569;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  transition: all 0.14s ease;
-}
-
-.timeline-row-actions button:hover {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.timeline-drag-handle {
-  color: #94a3b8;
-  cursor: grab;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.timeline-drag-handle:active {
-  cursor: grabbing;
-}
-
-.timeline-title-area {
-  min-width: 0;
-  cursor: pointer;
-}
-
-.timeline-title-main {
-  font-size: 13px;
-  font-weight: 900;
-  color: #0f2742;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.timeline-title-sub {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 3px;
-  min-width: 0;
-}
-
-.timeline-title-sub > span:last-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.timeline-status-mini {
-  flex-shrink: 0;
-  border-radius: 999px;
-  padding: 2px 7px;
-  font-size: 10px;
-  font-weight: 900;
-}
-
-.timeline-status-mini-planning { background: #f1f5f9; color: #475569; }
-.timeline-status-mini-ready { background: #dbeafe; color: #1d4ed8; }
-.timeline-status-mini-running { background: #fef3c7; color: #b45309; }
-.timeline-status-mini-completed { background: #dcfce7; color: #15803d; }
-.timeline-status-mini-hold { background: #ede9fe; color: #6d28d9; }
-.timeline-status-mini-canceled { background: #fee2e2; color: #b91c1c; }
-
-.timeline-cell {
-  height: 23px;
-  background: #e2e8f0;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.timeline-cell.active {
-  background: linear-gradient(135deg, #2563eb, #0f2742);
-}
-
-.timeline-row-block.timeline-row-planning { border-left: 5px solid #94a3b8; }
-.timeline-row-block.timeline-row-ready { border-left: 5px solid #3b82f6; }
-.timeline-row-block.timeline-row-running { border-left: 5px solid #f59e0b; }
-.timeline-row-block.timeline-row-completed { border-left: 5px solid #10b981; }
-.timeline-row-block.timeline-row-hold { border-left: 5px solid #8b5cf6; }
-.timeline-row-block.timeline-row-canceled { border-left: 5px solid #ef4444; }
-
-.timeline-cell.active.timeline-status-planning {
-  background: linear-gradient(135deg, #94a3b8, #64748b);
-}
-
-.timeline-cell.active.timeline-status-ready {
-  background: linear-gradient(135deg, #60a5fa, #2563eb);
-}
-
-.timeline-cell.active.timeline-status-running {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.16);
-}
-
-.timeline-cell.active.timeline-status-completed {
-  background: linear-gradient(135deg, #34d399, #059669);
-}
-
-.timeline-cell.active.timeline-status-hold {
-  background: linear-gradient(135deg, #a78bfa, #7c3aed);
-}
-
-.timeline-cell.active.timeline-status-canceled {
-  background: repeating-linear-gradient(135deg, #ef4444 0, #ef4444 6px, #fecaca 6px, #fecaca 12px);
-}
-
-/* ---------------------------------------------------------
-   Kanban
-   --------------------------------------------------------- */
-.kanban-board-main {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(280px, 1fr));
-  gap: 16px;
-  align-items: start;
-  margin-bottom: 18px;
-}
-
-.kanban-board-sub {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(280px, 1fr));
-  gap: 16px;
-  align-items: start;
-}
-
-.kanban-column-v2 {
-  min-height: 520px;
-  border-radius: 18px;
-  border: 1px solid #e2e8f0;
-  padding: 14px;
-  background: #f8fafc;
-}
-
-.kanban-planning { background: linear-gradient(180deg, #f8fafc, #f1f5f9); }
-.kanban-ready { background: linear-gradient(180deg, #eff6ff, #f8fafc); border-color: #bfdbfe; }
-.kanban-running { background: linear-gradient(180deg, #fffbeb, #fffdf5); border-color: #fde68a; }
-.kanban-completed { background: linear-gradient(180deg, #ecfdf5, #f8fffb); border-color: #bbf7d0; }
-.kanban-hold { background: linear-gradient(180deg, #f5f3ff, #fafafa); border-color: #ddd6fe; }
-.kanban-canceled { background: linear-gradient(180deg, #fef2f2, #fffafa); border-color: #fecaca; }
-
-.kanban-header-v2 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
-}
-
-.kanban-header-v2 h3 {
-  font-size: 15px;
-  font-weight: 900;
-  color: #334155;
-}
-
-.kanban-count {
-  min-width: 28px;
-  height: 24px;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #0f2742;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 900;
-  box-shadow: 0 4px 12px rgba(15, 39, 66, 0.08);
-}
-
-.kanban-body-v2 {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.kanban-empty {
-  min-height: 150px;
-  border: 2px dashed #dbe3ef;
-  border-radius: 16px;
-  color: #cbd5e1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.kanban-empty i {
-  font-size: 22px;
-}
-
-.kanban-course-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 14px;
-  border-left: 5px solid #2563eb;
-  box-shadow: 0 8px 24px rgba(15, 39, 66, 0.10);
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-.kanban-course-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 34px rgba(15, 39, 66, 0.16);
-}
-
-.kanban-card-top,
-.kanban-card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.kanban-card-top {
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.client-pill {
-  font-size: 10px;
-  font-weight: 900;
-  color: #64748b;
-  background: #f1f5f9;
-  padding: 4px 7px;
-  border-radius: 8px;
-}
-
-.period-text {
-  font-size: 11px;
-  font-weight: 900;
-  color: #94a3b8;
-  white-space: nowrap;
-}
-
-.kanban-card-title {
-  font-size: 14px;
-  font-weight: 900;
-  color: #0f172a;
-  margin-bottom: 9px;
-  line-height: 1.35;
-}
-
-.kanban-card-location {
-  background: #f8fafc;
-  border-radius: 9px;
-  padding: 8px;
-  color: #64748b;
-  font-size: 11px;
-  font-weight: 700;
-  margin-bottom: 12px;
-}
-
-.kanban-card-location i {
-  color: #2563eb;
-  margin-right: 4px;
-}
-
-.progress-row {
-  margin-bottom: 12px;
-  color: #64748b;
-}
-
-.progress-track {
-  width: 100%;
-  height: 6px;
-  border-radius: 999px;
-  background: #e2e8f0;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #2563eb, #0f2742);
-}
-
-.round-preview {
-  border-top: 1px solid #e2e8f0;
-  padding-top: 10px;
-  margin-top: 8px;
-}
-
-.round-preview-title {
-  font-size: 11px;
-  font-weight: 900;
-  color: #64748b;
-  margin-bottom: 7px;
-}
-
-.round-preview-title i {
-  margin-right: 4px;
-}
-
-.round-preview-item {
-  display: grid;
-  grid-template-columns: 12px 1fr auto;
-  align-items: center;
-  gap: 6px;
-  background: #f8fafc;
-  border-radius: 7px;
-  padding: 5px 7px;
-  margin-bottom: 4px;
-}
-
-.round-preview-name {
-  font-size: 11px;
-  color: #475569;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.round-preview-date {
-  font-size: 10px;
-  font-weight: 800;
-  color: #94a3b8;
-}
-
-.kanban-card-footer {
-  margin-top: 13px;
-}
-
-.avatar-group {
-  display: flex;
-  align-items: center;
-}
-
-.avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 900;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #ffffff;
-  margin-left: -5px;
-}
-
-.avatar:first-child {
-  margin-left: 0;
-}
-
-.business-avatar { background: #7c3aed; }
-.pm-avatar { background: #0f2742; }
-.sub-avatar { background: #f59e0b; }
-.field-avatar { background: #ea580c; }
-
-.budget-text {
-  font-size: 11px;
-  font-weight: 900;
-  color: #94a3b8;
-}
-
-/* ---------------------------------------------------------
-   R&R
-   --------------------------------------------------------- */
-.rr-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(260px, 1fr));
-  gap: 16px;
-}
-
-.rr-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 18px;
-  padding: 18px;
-  box-shadow: 0 10px 28px rgba(15, 39, 66, 0.08);
-  min-height: 210px;
-}
-
-.rr-card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.rr-position {
-  font-size: 11px;
-  font-weight: 800;
-  color: #94a3b8;
-  margin-bottom: 4px;
-}
-
-.rr-name {
-  font-size: 17px;
-  font-weight: 900;
-  color: #0f172a;
-}
-
-.load-badge {
-  border-radius: 999px;
-  padding: 5px 9px;
-  font-size: 11px;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-.load-low { background: #f8fafc; color: #334155; }
-.load-normal { background: #dcfce7; color: #047857; }
-.load-high { background: #fee2e2; color: #b91c1c; }
-
-.rr-divider {
-  height: 1px;
-  background: #e2e8f0;
-  margin: 14px 0;
-}
-
-.rr-summary,
-.rr-result-summary {
-  display: grid;
-  gap: 8px;
-}
-
-.rr-summary {
-  grid-template-columns: repeat(3, 1fr);
-  margin-bottom: 14px;
-}
-
-.rr-summary-4 {
-  grid-template-columns: repeat(4, 1fr) !important;
-}
-
-.rr-summary div {
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 9px;
-  text-align: center;
-}
-
-.rr-summary b {
-  display: block;
-  font-size: 17px;
-  color: #0f2742;
-}
-
-.rr-summary span {
-  display: block;
-  font-size: 11px;
-  color: #64748b;
-  font-weight: 800;
-}
-
-.rr-section-title {
-  font-size: 12px;
-  font-weight: 900;
-  color: #64748b;
-  margin-bottom: 9px;
-}
-
-.rr-section-title span {
-  color: #94a3b8;
-}
-
-.rr-project-list {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.rr-project-item {
-  border-radius: 11px;
-  border: 1px solid #e2e8f0;
-  padding: 9px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.rr-project-item:hover {
-  background: #f8fafc;
-}
-
-.rr-project-main {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 13px;
-  color: #0f172a;
-  margin-bottom: 7px;
-}
-
-.rr-project-main b {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.rr-project-sub {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: #94a3b8;
-  font-weight: 800;
-}
-
-.role-chip {
-  border-radius: 7px;
-  padding: 3px 7px;
-  font-size: 10px;
-  font-weight: 900;
-}
-
-.role-business { background: #ede9fe; color: #6d28d9; }
-.role-pm { background: #dbeafe; color: #1d4ed8; }
-.role-sub { background: #fef3c7; color: #b45309; }
-.role-field { background: #ffedd5; color: #c2410c; }
-
-.rr-empty {
-  text-align: center;
-  padding: 24px 8px;
-  color: #cbd5e1;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.rr-more-btn {
-  width: 100%;
-  margin-top: 8px;
-  padding: 8px 10px;
-  border: 1px dashed #cbd5e1;
-  border-radius: 10px;
-  background: #f8fafc;
-  color: #475569;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.rr-more-btn:hover {
-  background: #eef2ff;
-  color: #1e3a8a;
-}
-
-.rr-result-summary {
-  grid-template-columns: repeat(3, 1fr);
-  margin: 10px 0 14px;
-  padding: 10px;
-  border-radius: 14px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-}
-
-.rr-result-summary div {
-  text-align: center;
-}
-
-.rr-result-summary b {
-  display: block;
-  font-size: 16px;
-  font-weight: 900;
-  color: #0f2742;
-}
-
-.rr-result-summary span {
-  display: block;
-  margin-top: 3px;
-  font-size: 10px;
-  font-weight: 800;
-  color: #64748b;
-}
-
-/* ---------------------------------------------------------
-   Checklist - Compact List
-   --------------------------------------------------------- */
-.checklist-panel {
-  margin-top: 12px;
-  padding: 14px 16px;
-  border: 1px solid #dbe3ef;
-  border-radius: 16px;
-  background: #ffffff;
-  box-shadow: none;
-}
-
-.checklist-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.checklist-title {
-  font-size: 14px;
-  font-weight: 900;
-  color: #0f2742;
-}
-
-.checklist-guide {
-  display: none;
-}
-
-.checklist-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.checklist-edit-btn {
-  height: 32px;
-  padding: 0 11px;
-  border: 1px solid #dbe3ef;
-  border-radius: 9px;
-  background: #f8fafc;
-  color: #334155;
-  font-size: 12px;
-  font-weight: 800;
-  box-shadow: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  z-index: 2;
-}
-
-.checklist-edit-btn:hover {
-  background: #eef2f7;
-  transform: none;
-}
-
-.checklist-score {
-  min-width: auto;
-  height: 32px;
-  padding: 0 10px;
-  border-radius: 9px;
-  background: #0f2742;
-  color: #ffffff;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  box-shadow: none;
-  border: 0;
-}
-
-.checklist-score strong {
-  font-size: 14px;
-}
-
-.checklist-score span {
-  font-size: 12px;
-  color: rgba(255,255,255,0.78);
-}
-
-.checklist-progress {
-  width: 100%;
-  height: 5px;
-  border-radius: 999px;
-  background: #e5eaf1;
-  overflow: hidden;
-}
-
-.checklist-progress-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: #2563eb;
-  transition: width 0.2s ease;
-}
-
-.checklist-percent-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 5px 0 10px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #64748b;
-}
-
-.checklist-percent-row b {
-  color: #2563eb;
-}
-
-.checklist-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  border: 1px solid #e5eaf1;
-  border-radius: 12px;
-  overflow: hidden;
-  background: #ffffff;
-}
-
-.checklist-card {
-  min-height: 46px;
-  padding: 9px 12px;
-  border: 0;
-  border-bottom: 1px solid #eef2f7;
-  border-radius: 0;
-  background: #ffffff;
-  display: grid;
-  grid-template-columns: 22px 26px 1fr auto;
-  align-items: center;
-  gap: 9px;
-  box-shadow: none;
-  transform: none;
-  cursor: pointer;
-  transition: background 0.14s ease;
-}
-
-.checklist-card:last-child {
-  border-bottom: 0;
-}
-
-.checklist-card:hover {
-  background: #f8fafc;
-  box-shadow: none;
-  transform: none;
-}
-
-.checklist-card input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.checklist-number {
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
-  background: #f1f5f9;
-  color: #475569;
-  font-size: 11px;
-  font-weight: 900;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.checklist-card.is-done .checklist-number {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.checklist-custom-box {
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 5px;
-  background: #ffffff;
-  color: transparent;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.checklist-custom-box i {
-  font-size: 10px;
-}
-
-.checklist-card.is-done {
-  background: #ffffff;
-}
-
-.checklist-card.is-done:hover {
-  background: #f8fafc;
-}
-
-.checklist-card.is-done .checklist-custom-box {
-  border-color: #16a34a;
-  background: #16a34a;
-  color: #ffffff;
-}
-
-.checklist-content {
-  min-width: 0;
-  display: grid;
-  grid-template-columns: minmax(120px, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-}
-
-.checklist-name {
-  font-size: 13px;
-  font-weight: 800;
-  color: #1e293b;
-  line-height: 1.35;
-  word-break: keep-all;
-}
-
-.checklist-card.is-done .checklist-name {
-  color: #334155;
-}
-
-.checklist-date {
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
-  white-space: nowrap;
-}
-
-.checklist-date.muted {
-  color: #94a3b8;
-}
-
-.checklist-state {
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #64748b;
-  font-size: 11px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.checklist-card.is-done .checklist-state {
-  background: #dcfce7;
-  color: #15803d;
-}
-
-.checklist-empty,
-.checklist-edit-empty {
-  text-align: center;
-  padding: 26px 8px;
-  border: 2px dashed #e2e8f0;
-  border-radius: 14px;
-  color: #cbd5e1;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-/* ---------------------------------------------------------
-   Checklist Edit Modal
-   --------------------------------------------------------- */
-.custom-mark,
-.default-mark {
-  margin-left: 5px;
-  border-radius: 999px;
-  padding: 2px 6px;
-  font-size: 9px;
-  font-style: normal;
-  font-weight: 900;
-}
-
-.custom-mark {
-  background: #ffedd5;
-  color: #c2410c;
-}
-
-.default-mark {
-  background: #e2e8f0;
-  color: #64748b;
-}
-
-.checklist-edit-add-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
-}
-
-.checklist-edit-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.checklist-edit-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: center;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 12px;
-  background: #ffffff;
-}
-
-.checklist-edit-row.is-hidden {
-  background: #f8fafc;
-  opacity: 0.72;
-}
-
-.checklist-edit-row.is-hidden .checklist-edit-title {
-  text-decoration: line-through;
-  color: #94a3b8;
-}
-
-.checklist-edit-title {
-  font-size: 14px;
-  font-weight: 900;
-  color: #334155;
-}
-
-.checklist-edit-meta {
-  margin-top: 3px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #94a3b8;
-}
-
-.checklist-edit-actions {
-  display: flex;
-  gap: 6px;
-}
-
-/* ---------------------------------------------------------
-   Weekly Layer
-   --------------------------------------------------------- */
-.weekly-control-panel {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-  padding: 16px;
-  border-radius: 17px;
-  border: 1px solid #e2e8f0;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  margin-bottom: 16px;
-}
-
-.weekly-control-title {
-  font-size: 15px;
-  font-weight: 900;
-  color: #0f2742;
-}
-
-.weekly-control-desc {
-  font-size: 12px;
-  font-weight: 700;
-  color: #94a3b8;
-  margin-top: 4px;
-}
-
-.weekly-date-control {
-  display: grid;
-  grid-template-columns: 170px auto;
-  gap: 8px;
-  align-items: center;
-}
-
-.weekly-empty {
-  min-height: 240px;
-  border: 2px dashed #e2e8f0;
-  border-radius: 17px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-  color: #cbd5e1;
-  font-size: 14px;
-  font-weight: 900;
-}
-
-.weekly-empty i {
-  font-size: 28px;
-}
-
-.weekly-calendar-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 12px;
-  margin-bottom: 14px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 8px 20px rgba(15, 39, 66, 0.05);
-}
-
-.weekly-calendar-summary b {
-  display: block;
-  font-size: 16px;
-  font-weight: 900;
-  color: #0f2742;
-}
-
-.weekly-calendar-summary span,
-.weekly-help {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  font-weight: 800;
-  color: #64748b;
-}
-
-.weekly-calendar-table {
-  border: 1px solid #e2e8f0;
-  border-radius: 18px;
-  overflow-x: auto;
-  background: #ffffff;
-  box-shadow: 0 12px 30px rgba(15, 39, 66, 0.08);
-}
-
-.weekly-calendar-head,
-.weekly-calendar-row {
-  display: grid;
-  grid-template-columns: 120px repeat(7, minmax(130px, 1fr));
-  min-width: 1060px;
-}
-
-.weekly-calendar-head {
-  background: #0f2742;
-  color: #ffffff;
-}
-
-.weekly-calendar-head > div {
-  padding: 12px 10px;
-  font-size: 13px;
-  font-weight: 900;
-  text-align: center;
-  border-right: 1px solid rgba(255,255,255,0.12);
-}
-
-.weekly-calendar-body {
-  min-width: 1060px;
-}
-
-.weekly-calendar-row {
-  border-top: 1px solid #e2e8f0;
-}
-
-.weekly-week-label {
-  background: #f8fafc;
-  border-right: 1px solid #e2e8f0;
-  padding: 12px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.weekly-week-label strong {
-  font-size: 14px;
-  font-weight: 900;
-  color: #0f2742;
-}
-
-.weekly-week-label span {
-  font-size: 11px;
-  font-weight: 800;
-  color: #64748b;
-  line-height: 1.35;
-}
-
-.weekly-week-label em {
-  width: fit-content;
-  border-radius: 999px;
-  background: #dbeafe;
-  color: #1d4ed8;
-  padding: 3px 8px;
-  font-size: 10px;
-  font-style: normal;
-  font-weight: 900;
-}
-
-.weekly-day-cell {
-  min-height: 150px;
-  padding: 8px;
-  border-right: 1px solid #e2e8f0;
-  background: #ffffff;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.weekly-day-cell.other-month {
-  background: #f8fafc;
-}
-
-.weekly-day-cell.today {
-  box-shadow: inset 0 0 0 2px #2563eb;
-  background: #eff6ff;
-}
-
-.weekly-day-number {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.weekly-day-number span {
-  width: 25px;
-  height: 25px;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #334155;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.weekly-day-cell.today .weekly-day-number span {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.weekly-day-cell.other-month .weekly-day-number span {
-  color: #cbd5e1;
-}
-
-.weekly-day-events {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.weekly-calendar-event {
-  border-radius: 10px;
-  padding: 7px 8px;
-  cursor: pointer;
-  transition: all 0.14s ease;
-  border: 1px solid transparent;
-}
-
-.weekly-calendar-event:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(15, 39, 66, 0.12);
-}
-
-.weekly-calendar-event.event-round {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-}
-
-.weekly-calendar-event.event-course {
-  background: #f5f3ff;
-  border-color: #ddd6fe;
-}
-
-.weekly-calendar-event-title {
-  display: flex;
-  gap: 5px;
-  align-items: flex-start;
-  font-size: 11px;
-  font-weight: 900;
-  color: #0f172a;
-  line-height: 1.35;
-}
-
-.weekly-calendar-event-title span {
-  flex-shrink: 0;
-  width: 17px;
-  height: 17px;
-  border-radius: 5px;
-  background: #0f2742;
-  color: #ffffff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  font-weight: 900;
-}
-
-.weekly-calendar-event-meta {
-  margin-top: 4px;
-  font-size: 10px;
-  font-weight: 800;
-  color: #64748b;
-}
-
-.weekly-day-empty {
-  min-height: 42px;
-  border: 1px dashed #e2e8f0;
-  border-radius: 10px;
-  color: #cbd5e1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 900;
-}
-
-.weekly-day-more {
-  border: 1px dashed #cbd5e1;
-  background: #ffffff;
-  color: #475569;
-  border-radius: 9px;
-  padding: 6px 8px;
-  font-size: 10px;
-  font-weight: 900;
-  transition: all 0.14s ease;
-}
-
-.weekly-day-more:hover {
-  border-color: #2563eb;
-  background: #eff6ff;
-  color: #1d4ed8;
-}
-
-.weekly-day-detail-area {
-  margin-top: 16px;
-}
-
-.weekly-detail-panel {
-  border: 1px solid #bfdbfe;
-  border-radius: 18px;
-  background: #eff6ff;
-  padding: 14px;
-}
-
-.weekly-detail-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.weekly-detail-head b {
-  display: block;
-  font-size: 15px;
-  font-weight: 900;
-  color: #0f2742;
-}
-
-.weekly-detail-head span {
-  display: block;
-  margin-top: 3px;
-  font-size: 12px;
-  font-weight: 800;
-  color: #64748b;
-}
-
-.weekly-detail-head button {
-  border-radius: 999px;
-  background: #0f2742;
-  color: #ffffff;
-  padding: 7px 12px;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.weekly-detail-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 10px;
-}
-
-.weekly-detail-item {
-  border-radius: 14px;
-  background: #ffffff;
-  border: 1px solid #dbeafe;
-  padding: 12px;
-  cursor: pointer;
-}
-
-.weekly-detail-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.weekly-type {
-  border-radius: 999px;
-  padding: 3px 7px;
-  font-size: 10px;
-  font-weight: 900;
-}
-
-.type-round { background: #dbeafe; color: #1d4ed8; }
-.type-course { background: #ede9fe; color: #6d28d9; }
-
-.weekly-detail-title {
-  font-size: 13px;
-  font-weight: 900;
-  color: #0f172a;
-  line-height: 1.35;
-  margin-bottom: 8px;
-}
-
-.weekly-detail-meta {
-  font-size: 11px;
-  font-weight: 800;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-/* ---------------------------------------------------------
-   Responsive
-   --------------------------------------------------------- */
-@media (max-width: 1200px) {
-  .kanban-board-main {
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
-  }
-
-  .kanban-board-sub {
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
-  }
-
-  .rr-grid {
-    grid-template-columns: repeat(2, minmax(260px, 1fr));
+// =========================================================
+// HRI HRD사업팀 과정운영 관리 앱
+// 최종 통합본
+// =========================================================
+
+const STATUS_LABELS = {
+  planning: "기획중",
+  ready: "준비중",
+  running: "운영중",
+  completed: "완료",
+  hold: "보류",
+  canceled: "취소",
+};
+
+const STATUS_ORDER = ["planning", "ready", "running", "completed", "hold", "canceled"];
+
+const REGIONS = [
+  "미정", "전국", "비대면",
+  "서울", "경기", "인천", "강원", "충북", "충남", "대전", "세종",
+  "전북", "전남", "광주", "경북", "경남", "대구", "울산", "부산", "제주"
+];
+
+let state = {
+  members: [],
+  courses: [],
+  rounds: [],
+  checklistItems: [],
+  checklistStatuses: [],
+  logs: [],
+  currentUserId: "",
+  currentView: "timeline",
+  selectedCourseId: "",
+  selectedRoundId: "",
+  selectedSupportManagerIds: [],
+  selectedRoundFieldManagerIds: [],
+};
+
+// ---------------------------------------------------------
+// 공통 유틸 함수
+// ---------------------------------------------------------
+function formatTinyDate(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const yy = String(date.getFullYear()).slice(2);
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+
+  return `${yy}.${mm}.${dd}`;
+}
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+  bindEvents();
+  fillStaticSelects();
+  ensureRoundFieldManagerUI();
+  ensureCompleteSatisfactionUI();
+  await loadAll();
+});
+
+// ---------------------------------------------------------
+// 이벤트 연결
+// ---------------------------------------------------------
+function bindEvents() {
+  document.getElementById("openCourseModalBtn").addEventListener("click", () => openCourseModal());
+
+  document.getElementById("courseForm").addEventListener("submit", saveCourse);
+  document.getElementById("roundForm").addEventListener("submit", saveRound);
+  document.getElementById("completeForm").addEventListener("submit", submitCompleteRound);
+
+  document.getElementById("hideCourseBtn").addEventListener("click", hideCurrentCourse);
+  document.getElementById("hideRoundBtn").addEventListener("click", hideCurrentRound);
+
+  document.getElementById("completeRoundBtn").addEventListener("click", () => {
+    const roundId = document.getElementById("roundId").value;
+    openCompleteModal(roundId);
+  });
+
+  document.getElementById("quickAddRoundBtn").addEventListener("click", quickAddRound);
+  document.getElementById("roundStatus").addEventListener("change", toggleCompletedFields);
+
+  document.getElementById("openMemberModalBtn").addEventListener("click", () => {
+    renderMemberList();
+    openModal("memberModal");
+  });
+
+  document.getElementById("addMemberBtn").addEventListener("click", addMember);
+  const addSupportManagerBtn = document.getElementById("addSupportManagerBtn");
+  if (addSupportManagerBtn) addSupportManagerBtn.addEventListener("click", addSupportManagerTag);
+  document.getElementById("addCustomChecklistBtn").addEventListener("click", addCustomChecklistItem);
+
+  document.getElementById("updateDataBtn").addEventListener("click", updateData);
+  document.getElementById("downloadExcelBtn").addEventListener("click", downloadExcel);
+
+  document.getElementById("weeklyApplyDateBtn").addEventListener("click", applyWeeklyBaseDate);
+
+  document.getElementById("currentUserSelect").addEventListener("change", (e) => {
+    state.currentUserId = e.target.value;
+    localStorage.setItem("hri_current_user_id", state.currentUserId);
+  });
+
+  ["searchInput", "managerFilter", "statusFilter", "regionFilter"].forEach((id) => {
+    document.getElementById(id).addEventListener("input", render);
+    document.getElementById(id).addEventListener("change", render);
+  });
+
+  document.getElementById("resetFilterBtn").addEventListener("click", () => {
+    document.getElementById("searchInput").value = "";
+    document.getElementById("managerFilter").value = "";
+    document.getElementById("statusFilter").value = "";
+    document.getElementById("regionFilter").value = "";
+    render();
+  });
+
+  document.querySelectorAll("[data-close-modal]").forEach((btn) => {
+    btn.addEventListener("click", () => closeModal(btn.dataset.closeModal));
+  });
+
+  document.querySelectorAll(".view-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.currentView = btn.dataset.view;
+      document.querySelectorAll(".view-tab").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderViews();
+    });
+  });
+}
+
+// ---------------------------------------------------------
+// 데이터 로드
+// ---------------------------------------------------------
+async function loadAll() {
+  try {
+    setSyncStatus("데이터 불러오는 중...");
+
+    const [
+      membersRes,
+      coursesRes,
+      roundsRes,
+      checklistItemsRes,
+      checklistStatusesRes,
+      logsRes
+    ] = await Promise.all([
+      db.from("members").select("*").eq("is_active", true).order("sort_order", { ascending: true }),
+      db.from("courses").select("*").eq("is_active", true).order("created_at", { ascending: false }),
+      db.from("rounds").select("*").eq("is_active", true).order("round_no", { ascending: true }),
+      db.from("checklist_items").select("*").eq("is_active", true).order("sort_order", { ascending: true }),
+      db.from("checklist_statuses").select("*"),
+      db.from("activity_logs").select("*").order("created_at", { ascending: false }).limit(30),
+    ]);
+
+    throwIfError(membersRes);
+    throwIfError(coursesRes);
+    throwIfError(roundsRes);
+    throwIfError(checklistItemsRes);
+    throwIfError(checklistStatusesRes);
+    throwIfError(logsRes);
+
+    state.members = membersRes.data || [];
+    state.courses = coursesRes.data || [];
+    state.rounds = roundsRes.data || [];
+    state.checklistItems = checklistItemsRes.data || [];
+    state.checklistStatuses = checklistStatusesRes.data || [];
+    state.logs = logsRes.data || [];
+
+    fillMemberSelects();
+    fillRoundFieldManagerSelect();
+
+    const savedUserId = localStorage.getItem("hri_current_user_id") || "";
+    state.currentUserId = savedUserId;
+    document.getElementById("currentUserSelect").value = savedUserId;
+
+    render();
+    setSyncStatus(`동기화 완료 · ${formatNow()}`);
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("오류 발생");
+    alert("데이터를 불러오는 중 오류가 발생했습니다.\n\n" + error.message);
   }
 }
 
-@media (max-width: 900px) {
-  .round-add-box,
-  .weekly-date-control {
-    grid-template-columns: 1fr;
+function throwIfError(response) {
+  if (response.error) throw response.error;
+}
+
+// ---------------------------------------------------------
+// 셀렉트박스
+// ---------------------------------------------------------
+function fillStaticSelects() {
+  fillStatusOptions(document.getElementById("statusFilter"), true);
+  fillStatusOptions(document.getElementById("courseStatus"), false);
+  fillStatusOptions(document.getElementById("roundStatus"), false);
+  fillStatusOptions(document.getElementById("quickRoundStatus"), false);
+
+  fillRegionOptions(document.getElementById("regionFilter"), true);
+  fillRegionOptions(document.getElementById("region"), false);
+}
+
+function fillStatusOptions(select, includeAll) {
+  if (!select) return;
+  select.innerHTML = includeAll ? `<option value="">상태 전체</option>` : "";
+  STATUS_ORDER.forEach((key) => {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = STATUS_LABELS[key];
+    select.appendChild(option);
+  });
+}
+
+function fillRegionOptions(select, includeAll) {
+  if (!select) return;
+  select.innerHTML = includeAll ? `<option value="">연수지역 전체</option>` : "";
+  REGIONS.forEach((region) => {
+    const option = document.createElement("option");
+    option.value = region;
+    option.textContent = region;
+    select.appendChild(option);
+  });
+}
+
+function fillMemberSelects() {
+  const selectors = [
+    "currentUserSelect",
+    "managerFilter",
+    "businessManager",
+    "mainManager",
+    "subManager1",
+    "subManager2",
+    "roundFieldManagerSelect",
+  ];
+
+  selectors.forEach((id) => {
+    const select = document.getElementById(id);
+    if (!select) return;
+
+    const label =
+      id === "currentUserSelect" ? "현재 사용자 선택" :
+      id === "managerFilter" ? "담당자 전체" :
+      id === "businessManager" ? "사업담당자 선택" :
+      id === "mainManager" ? "운영PM 선택" :
+      id === "roundFieldManagerSelect" ? "차수별 운영 지원/현장운영자 선택" :
+      "없음";
+
+    select.innerHTML = `<option value="">${label}</option>`;
+
+    state.members.forEach((member) => {
+      const option = document.createElement("option");
+      option.value = member.id;
+      option.textContent = `${member.name}${member.position ? " (" + member.position + ")" : ""}`;
+      select.appendChild(option);
+    });
+  });
+}
+
+// ---------------------------------------------------------
+// 렌더링
+// ---------------------------------------------------------
+function render() {
+  renderStats();
+  renderViews();
+}
+
+function renderStats() {
+  const courses = getFilteredCourses();
+  const rounds = state.rounds.filter((r) => courses.some((c) => c.id === r.course_id));
+
+  const runningCourses = courses.filter((c) => ["ready", "running"].includes(c.status)).length;
+  const completedRounds = rounds.filter((r) => r.status === "completed");
+
+  const totalParticipants = completedRounds.reduce((sum, r) => sum + (Number(r.participant_count) || 0), 0);
+
+  const satisfactionRows = completedRounds.filter((r) => r.satisfaction !== null && r.satisfaction !== undefined);
+  const avgSatisfaction = satisfactionRows.length
+    ? satisfactionRows.reduce((sum, r) => sum + Number(r.satisfaction), 0) / satisfactionRows.length
+    : null;
+
+  const activeMembers = state.members.length || 1;
+  const activeWorkCourses = courses.filter((c) => ["ready", "running"].includes(c.status));
+  const managerAssignments = activeWorkCourses.reduce((sum, c) => {
+    return sum + [
+      c.business_manager_id,
+      c.main_manager_id,
+      c.sub_manager1_id,
+    ].filter(Boolean).length;
+  }, 0);
+
+  document.getElementById("statTotalCourses").textContent = courses.length;
+  document.getElementById("statRunningCourses").textContent = runningCourses;
+  document.getElementById("statTotalRounds").textContent = rounds.length;
+  document.getElementById("statTotalParticipants").textContent = totalParticipants;
+  document.getElementById("statAvgSatisfaction").textContent = avgSatisfaction === null ? "-" : avgSatisfaction.toFixed(2);
+  document.getElementById("statAvgWorkload").textContent = (managerAssignments / activeMembers).toFixed(1);
+}
+
+function renderViews() {
+  ["timeline", "kanban", "rr", "logs"].forEach((view) => {
+    document.getElementById(`${view}View`).classList.toggle("hidden", state.currentView !== view);
+  });
+
+  if (state.currentView === "timeline") renderTimeline();
+  if (state.currentView === "kanban") renderKanban();
+  if (state.currentView === "rr") renderRR();
+  if (state.currentView === "logs") renderLogs();
+}
+
+function getFilteredCourses() {
+  const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
+  const managerId = document.getElementById("managerFilter").value;
+  const status = document.getElementById("statusFilter").value;
+  const region = document.getElementById("regionFilter").value;
+
+  return state.courses.filter((course) => {
+    const text = [
+      course.course_name,
+      course.client_name,
+      course.location_detail,
+      course.region
+    ].join(" ").toLowerCase();
+
+    const matchedKeyword = !keyword || text.includes(keyword);
+    const matchedStatus = !status || course.status === status;
+    const matchedRegion = !region || course.region === region;
+
+    const managerIds = [
+      course.business_manager_id,
+      course.main_manager_id,
+      course.sub_manager1_id,
+      ...state.rounds
+        .filter((round) => round.course_id === course.id)
+        .flatMap((round) => round.field_manager_ids || []),
+    ].filter(Boolean);
+
+    const matchedManager = !managerId || managerIds.includes(managerId);
+
+    return matchedKeyword && matchedStatus && matchedRegion && matchedManager;
+  });
+}
+
+function renderTimeline() {
+  const container = document.getElementById("timelineView");
+  const courses = getTimelineSortedCourses();
+
+  if (!courses.length) {
+    container.innerHTML = emptyBox("표시할 과정이 없습니다.");
+    return;
   }
 
-  .completed-box {
-    grid-template-columns: 1fr;
+  let html = `
+    <div class="timeline-wrapper">
+      <div class="timeline-guide">
+        <div>
+          <b>연간 타임라인</b>
+          <span>프로젝트 블록을 드래그하거나 ↑↓ 버튼으로 순서를 조정할 수 있습니다.</span>
+        </div>
+        <button type="button" class="btn-secondary" onclick="saveTimelineOrder()">
+          <i class="fa-solid fa-floppy-disk"></i>
+          순서 저장
+        </button>
+      </div>
+
+      <div class="timeline-grid mb-3 timeline-header-grid">
+        <div></div>
+        ${Array.from({ length: 12 }, (_, i) => `<button type="button" class="timeline-month timeline-month-btn" onclick="openWeeklyLayer(${i + 1})">${i + 1}월</button>`).join("")}
+      </div>
+
+      <div id="timelineRows" class="space-y-3">
+  `;
+
+  courses.forEach((course, index) => {
+    const start = getCourseStartMonth(course) || 1;
+    const end = getCourseEndMonth(course) || start;
+
+    html += `
+      <div
+        class="timeline-grid timeline-row-block timeline-row-${course.status}"
+        draggable="true"
+        data-course-id="${course.id}"
+        ondragstart="handleTimelineDragStart(event, '${course.id}')"
+        ondragover="handleTimelineDragOver(event)"
+        ondrop="handleTimelineDrop(event, '${course.id}')"
+        ondragend="handleTimelineDragEnd(event)"
+      >
+    `;
+
+    html += `
+      <div class="timeline-name timeline-name-block">
+        <div class="timeline-row-actions" onclick="event.stopPropagation()">
+          <button type="button" title="위로 이동" onclick="moveTimelineCourse('${course.id}', -1)">
+            <i class="fa-solid fa-chevron-up"></i>
+          </button>
+          <button type="button" title="아래로 이동" onclick="moveTimelineCourse('${course.id}', 1)">
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+        </div>
+
+        <div class="timeline-drag-handle" title="드래그해서 순서 변경">
+          <i class="fa-solid fa-grip-vertical"></i>
+        </div>
+
+        <div class="timeline-title-area" onclick="openCourseModalById('${course.id}')">
+          <div class="timeline-title-main">${escapeHtml(course.course_name)}</div>
+          <div class="timeline-title-sub">
+            <span class="timeline-status-mini timeline-status-mini-${course.status}">${statusText(course.status)}</span>
+            <span>${escapeHtml(course.client_name || "")}</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    for (let month = 1; month <= 12; month++) {
+      const active = month >= start && month <= end;
+      html += `
+        <div
+          class="timeline-cell ${active ? `active timeline-status-${course.status}` : ""}"
+          onclick="openCourseModalById('${course.id}')"
+        ></div>
+      `;
+    }
+
+    html += `</div>`;
+  });
+
+  html += `
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+function renderKanban() {
+  const container = document.getElementById("kanbanView");
+  const courses = getFilteredCourses();
+
+  const mainStatuses = ["planning", "ready", "running", "completed"];
+  const subStatuses = ["hold", "canceled"];
+
+  const renderColumn = (status) => {
+    const completedHint = status === "completed" ? `<div class="completed-hint">최근 수정순</div>` : "";
+    let list = courses.filter((c) => c.status === status);
+
+    if (status === "completed") {
+      list = [...list].sort((a, b) => {
+        const dateA = new Date(a.updated_at || a.end_date_ymd || a.created_at || 0);
+        const dateB = new Date(b.updated_at || b.end_date_ymd || b.created_at || 0);
+        return dateB - dateA;
+      });
+    }
+
+    return `
+      <div class="kanban-column-v2 kanban-${status}">
+        <div class="kanban-header-v2">
+          <div class="flex items-center gap-2">
+            <span class="kanban-dot dot-${status}"></span>
+            <div>
+              <h3>${STATUS_LABELS[status]}</h3>
+              ${completedHint}
+            </div>
+          </div>
+          <span class="kanban-count">${list.length}</span>
+        </div>
+
+        ${status === "completed" ? `<div class="kanban-column-note">최근 수정순 · 컬럼 내부 스크롤</div>` : ""}
+
+        <div class="kanban-body-v2 ${status === "completed" ? "kanban-body-scroll" : ""}">
+          ${
+            list.length
+              ? list.map(renderCourseMiniCard).join("")
+              : `
+                <div class="kanban-empty">
+                  <i class="fa-solid fa-box-open"></i>
+                  <div>배정된 과정이 없습니다.</div>
+                </div>
+              `
+          }
+        </div>
+      </div>
+    `;
+  };
+
+  container.innerHTML = `
+    <div class="kanban-board-main">
+      ${mainStatuses.map(renderColumn).join("")}
+    </div>
+
+    <div class="kanban-board-sub">
+      ${subStatuses.map(renderColumn).join("")}
+    </div>
+  `;
+}
+
+function renderCourseMiniCard(course) {
+  const rounds = state.rounds
+    .filter((r) => r.course_id === course.id)
+    .sort((a, b) => a.round_no - b.round_no);
+
+  const totalCheckCount = getCourseChecklistCount(course.id);
+  const doneCheckCount = getCourseDoneChecklistCount(course.id);
+
+  const progress = totalCheckCount
+    ? Math.round((doneCheckCount / totalCheckCount) * 100)
+    : 0;
+
+  const business = getMemberShortName(course.business_manager_id);
+  const pm = getMemberShortName(course.main_manager_id);
+  const sub1 = getMemberShortName(course.sub_manager1_id);
+  const fieldCount = state.rounds
+    .filter((round) => round.course_id === course.id)
+    .reduce((sum, round) => sum + ((round.field_manager_ids || []).length), 0);
+
+  const budgetText = course.expected_budget ? `₩ ${Number(course.expected_budget).toLocaleString()}` : "";
+  const periodText = makeDateLabel(course.start_date_ymd, course.end_date_ymd)
+    || makeMonthRangeLabel(course)
+    || "-";
+
+  return `
+    <div class="kanban-course-card" onclick="openCourseModalById('${course.id}')">
+      <div class="kanban-card-top">
+        <span class="client-pill">${escapeHtml(course.client_name || "고객사 미정")}</span>
+        <span class="period-text">${escapeHtml(periodText)}</span>
+      </div>
+
+      <h4 class="kanban-card-title">${escapeHtml(course.course_name)}</h4>
+
+      <div class="kanban-card-location">
+        <i class="fa-solid fa-location-dot"></i>
+        ${escapeHtml(course.region || "미정")}
+        ${course.location_detail ? ` | ${escapeHtml(course.location_detail)}` : ""}
+      </div>
+
+      <div class="progress-row">
+        <div class="flex justify-between text-xs mb-1">
+          <span>과정 준비율</span>
+          <b>${doneCheckCount}/${totalCheckCount} (${progress}%)</b>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${progress}%;"></div>
+        </div>
+      </div>
+
+      <div class="round-preview">
+        <div class="round-preview-title">
+          <i class="fa-solid fa-layer-group"></i>
+          세부 차수 정보 (${rounds.length}개)
+        </div>
+
+        ${
+          rounds.length
+            ? rounds.slice(0, 3).map((round) => {
+              const fieldText = getRoundFieldShortNames(round.field_manager_ids, 2);
+              return `
+                <div class="round-preview-item round-preview-item-with-field">
+                  <span class="round-dot dot-${round.status}"></span>
+                  <span class="round-preview-name">${round.round_no}차수 ${escapeHtml(round.round_name || "")}</span>
+                  <span class="round-preview-date">${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</span>
+                  ${round.venue ? `<span class="round-preview-venue">장소: ${escapeHtml(round.venue)}</span>` : ""}
+                  ${fieldText ? `<span class="round-preview-field">현장: ${escapeHtml(fieldText)}</span>` : ""}
+                </div>
+              `;
+            }).join("")
+            : `<div class="small-muted">등록된 차수 없음</div>`
+        }
+
+        ${
+          rounds.length > 3
+            ? `<div class="small-muted mt-1">외 ${rounds.length - 3}개 차수</div>`
+            : ""
+        }
+      </div>
+
+      <div class="kanban-card-footer">
+        <div class="avatar-group">
+          ${business ? `<span class="avatar business-avatar" title="사업담당자">${escapeHtml(business)}</span>` : ""}
+          ${pm ? `<span class="avatar pm-avatar" title="운영PM">${escapeHtml(pm)}</span>` : ""}
+          ${sub1 ? `<span class="avatar sub-avatar" title="운영PL">${escapeHtml(sub1)}</span>` : ""}
+          ${fieldCount ? `<span class="avatar field-avatar" title="차수별 운영지원/운영지원/현장">+${fieldCount}</span>` : ""}
+        </div>
+
+        <div class="budget-text">${escapeHtml(budgetText)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderRR() {
+  const container = document.getElementById("rrView");
+  const courses = getFilteredCourses();
+  const activeWorkStatuses = ["ready", "running"];
+
+  let html = `<div class="rr-grid">`;
+
+  state.members.forEach((member) => {
+    const activeProjectItems = buildRRProjectItems(member.id, courses, activeWorkStatuses);
+    const activeFieldItems = buildRRFieldRoundItems(member.id, courses, activeWorkStatuses);
+    const currentItems = [...activeProjectItems, ...activeFieldItems].sort(sortRRItems);
+
+    const completedProjectItems = buildRRProjectItems(member.id, courses, ["completed"]);
+    const completedFieldItems = buildRRFieldRoundItems(member.id, courses, ["completed"]);
+    const completedItems = [...completedProjectItems, ...completedFieldItems].sort(sortRRItemsDesc);
+
+    const businessCount = activeProjectItems.filter((item) => item.roleLabel === "사업담당자").length;
+    const pmCount = activeProjectItems.filter((item) => item.roleLabel === "운영PM").length;
+    const plCount = activeProjectItems.filter((item) => item.roleLabel === "운영PL").length;
+    const fieldCount = activeFieldItems.length;
+
+    const loadStatus = getLoadStatus(currentItems.length);
+    const visibleItems = currentItems.slice(0, 3);
+    const hiddenItems = currentItems.slice(3);
+    const moreAreaId = `rr-more-${member.id}`;
+    const historyAreaId = `rr-history-${member.id}`;
+
+    const completedSummary = getRRCompletedSummary(completedItems);
+
+    html += `
+      <div class="rr-card">
+        <div class="rr-card-head">
+          <div>
+            <div class="rr-position">${escapeHtml(member.position || "-")}</div>
+            <div class="rr-name">${escapeHtml(member.name)}</div>
+          </div>
+
+          <span class="load-badge ${loadStatus.className}">${loadStatus.label}</span>
+        </div>
+
+        <div class="rr-divider"></div>
+
+        <div class="rr-summary rr-summary-4">
+          <div><b>${businessCount}</b><span>사업</span></div>
+          <div><b>${pmCount}</b><span>PM</span></div>
+          <div><b>${plCount}</b><span>PL</span></div>
+          <div><b>${fieldCount}</b><span>운영지원</span></div>
+        </div>
+
+        <div class="rr-section-title">
+          현재 담당
+          <span>준비중/운영중 기준 · 운영지원은 차수별 기준</span>
+        </div>
+
+        <div class="rr-project-list">
+          ${
+            currentItems.length
+              ? `
+                ${visibleItems.map(renderRRItem).join("")}
+                ${
+                  hiddenItems.length
+                    ? `
+                      <div id="${moreAreaId}" class="hidden">
+                        ${hiddenItems.map(renderRRItem).join("")}
+                      </div>
+                      <button type="button" class="rr-more-btn" onclick="toggleRRMore('${moreAreaId}', this)">+${hiddenItems.length}개 더보기</button>
+                    `
+                    : ""
+                }
+              `
+              : `<div class="rr-empty">현재 준비중/운영중인 담당 프로젝트 없음</div>`
+          }
+        </div>
+
+        <div class="rr-history-box">
+          <div class="rr-section-title rr-history-title">
+            완료 이력
+            <span>총 ${completedItems.length}건 · 참여자 ${completedSummary.participants}명 · 평균 만족도 ${completedSummary.avgSatisfaction}</span>
+          </div>
+
+          ${
+            completedItems.length
+              ? `
+                <button type="button" class="rr-history-toggle" onclick="toggleRRMore('${historyAreaId}', this, '완료 이력 ${completedItems.length}건 보기')">
+                  완료 이력 ${completedItems.length}건 보기
+                </button>
+                <div id="${historyAreaId}" class="rr-history-list hidden">
+                  ${completedItems.map(renderRRItem).join("")}
+                </div>
+              `
+              : `<div class="rr-empty rr-empty-small">완료 이력 없음</div>`
+          }
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+function buildRRProjectItems(memberId, courses, statuses) {
+  return courses
+    .filter((course) => statuses.includes(course.status))
+    .flatMap((course) => {
+      const roles = [];
+      if (course.business_manager_id === memberId) roles.push("사업담당자");
+      if (course.main_manager_id === memberId) roles.push("운영PM");
+      if (course.sub_manager1_id === memberId) roles.push("운영PL");
+
+      return roles.map((roleLabel) => ({
+        type: "course",
+        course,
+        round: null,
+        roleLabel,
+        title: course.course_name,
+        period: makeDateLabel(course.start_date_ymd, course.end_date_ymd) || makeMonthRangeLabel(course) || "-",
+        status: course.status,
+        participants: 0,
+        satisfaction: null,
+        sortDate: course.end_date_ymd || course.start_date_ymd || course.updated_at || course.created_at,
+      }));
+    });
+}
+
+function buildRRFieldRoundItems(memberId, courses, statuses) {
+  return state.rounds
+    .filter((round) => statuses.includes(round.status))
+    .filter((round) => (round.field_manager_ids || []).includes(memberId))
+    .map((round) => {
+      const course = courses.find((item) => item.id === round.course_id) || getCourseById(round.course_id) || {};
+      return {
+        type: "round-field",
+        course,
+        round,
+        roleLabel: "운영지원",
+        title: `${course.course_name || "프로젝트"} · ${round.round_no || ""}차 ${round.round_name || ""}`,
+        period: round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-",
+        status: round.status || course.status,
+        participants: Number(round.participant_count) || 0,
+        satisfaction: round.satisfaction,
+        sortDate: round.end_date_ymd || round.start_date_ymd || round.updated_at || course.updated_at || course.created_at,
+      };
+    });
+}
+
+function renderRRItem(item) {
+  const courseId = item.course?.id || item.round?.course_id || "";
+  const role = item.roleLabel || "담당자";
+
+  return `
+    <div class="rr-project-item" onclick="openCourseModalById('${courseId}')">
+      <div class="rr-project-main">
+        <span class="rr-status-dot dot-${item.status}"></span>
+        <b>${escapeHtml(item.title || "-")}</b>
+      </div>
+
+      <div class="rr-project-sub">
+        <span class="role-chip ${getRoleChipClass(role)}">${escapeHtml(getRoleShortLabel(role))}</span>
+        <span>${escapeHtml(item.period || "-")}</span>
+      </div>
+    </div>
+  `;
+}
+
+function sortRRItems(a, b) {
+  return String(a.sortDate || "999999").localeCompare(String(b.sortDate || "999999"));
+}
+
+function sortRRItemsDesc(a, b) {
+  return String(b.sortDate || "000000").localeCompare(String(a.sortDate || "000000"));
+}
+
+function getRRCompletedSummary(items) {
+  const participants = items.reduce((sum, item) => sum + (Number(item.participants) || 0), 0);
+  const satisfactionRows = items
+    .map((item) => Number(item.satisfaction))
+    .filter((value) => Number.isFinite(value) && value > 0);
+
+  const avgSatisfaction = satisfactionRows.length
+    ? (satisfactionRows.reduce((sum, value) => sum + value, 0) / satisfactionRows.length).toFixed(2)
+    : "-";
+
+  return { participants, avgSatisfaction };
+}
+
+window.toggleRRMore = function(areaId, button, closedText = null) {
+  const area = document.getElementById(areaId);
+  if (!area) return;
+
+  const isHidden = area.classList.contains("hidden");
+  area.classList.toggle("hidden", !isHidden);
+
+  if (isHidden) {
+    button.textContent = "접기";
+  } else if (closedText) {
+    button.textContent = closedText;
+  } else {
+    const hiddenCount = area.querySelectorAll(".rr-project-item").length;
+    button.textContent = `+${hiddenCount}개 더보기`;
+  }
+};
+
+function renderLogs() {
+  const container = document.getElementById("logsView");
+
+  if (!state.logs.length) {
+    container.innerHTML = emptyBox("최근 이력이 없습니다.");
+    return;
   }
 
-  .timeline-guide,
-  .weekly-control-panel,
-  .weekly-calendar-summary {
-    flex-direction: column;
-    align-items: stretch;
+  container.innerHTML = `
+    <div class="course-card">
+      <h3 class="font-black text-[#0f2742] mb-4">최근 수정이력 30개</h3>
+      <div class="space-y-2">
+        ${state.logs.map((log) => `
+          <div class="border rounded-lg p-3">
+            <div class="flex flex-wrap justify-between gap-2">
+              <div class="font-bold">${escapeHtml(log.target_type)} · ${escapeHtml(log.action_type)}</div>
+              <div class="small-muted">${formatDateTime(log.created_at)}</div>
+            </div>
+            <div class="small-muted mt-1">${escapeHtml(log.change_summary || "")}</div>
+            <div class="small-muted mt-1">수정자: ${escapeHtml(getMemberName(log.changed_by) || "-")}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+
+
+
+// ---------------------------------------------------------
+// 연간 타임라인 순서 조정
+// ---------------------------------------------------------
+function getTimelineSortedCourses() {
+  return getFilteredCourses().sort((a, b) => {
+    const orderA = Number.isFinite(Number(a.timeline_order)) ? Number(a.timeline_order) : 999999;
+    const orderB = Number.isFinite(Number(b.timeline_order)) ? Number(b.timeline_order) : 999999;
+
+    if (orderA !== orderB) return orderA - orderB;
+
+    const startA = a.start_date_ymd || "991231";
+    const startB = b.start_date_ymd || "991231";
+
+    if (startA !== startB) return startA.localeCompare(startB);
+
+    return String(a.course_name || "").localeCompare(String(b.course_name || ""));
+  });
+}
+
+window.moveTimelineCourse = function(courseId, direction) {
+  const courses = getTimelineSortedCourses();
+  const currentIndex = courses.findIndex((course) => course.id === courseId);
+
+  if (currentIndex < 0) return;
+
+  const nextIndex = currentIndex + direction;
+  if (nextIndex < 0 || nextIndex >= courses.length) return;
+
+  const reordered = [...courses];
+  const [target] = reordered.splice(currentIndex, 1);
+  reordered.splice(nextIndex, 0, target);
+
+  applyTimelineOrderToState(reordered);
+  renderTimeline();
+};
+
+window.handleTimelineDragStart = function(event, courseId) {
+  state.timelineDragCourseId = courseId;
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", courseId);
+
+  const row = event.currentTarget;
+  row.classList.add("is-dragging");
+};
+
+window.handleTimelineDragOver = function(event) {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = "move";
+
+  const row = event.currentTarget;
+  document.querySelectorAll(".timeline-row-block.is-drop-target").forEach((el) => {
+    if (el !== row) el.classList.remove("is-drop-target");
+  });
+  row.classList.add("is-drop-target");
+};
+
+window.handleTimelineDrop = function(event, targetCourseId) {
+  event.preventDefault();
+
+  const draggedCourseId = state.timelineDragCourseId || event.dataTransfer.getData("text/plain");
+
+  document.querySelectorAll(".timeline-row-block").forEach((el) => {
+    el.classList.remove("is-dragging", "is-drop-target");
+  });
+
+  if (!draggedCourseId || draggedCourseId === targetCourseId) return;
+
+  const courses = getTimelineSortedCourses();
+  const fromIndex = courses.findIndex((course) => course.id === draggedCourseId);
+  const toIndex = courses.findIndex((course) => course.id === targetCourseId);
+
+  if (fromIndex < 0 || toIndex < 0) return;
+
+  const reordered = [...courses];
+  const [dragged] = reordered.splice(fromIndex, 1);
+  reordered.splice(toIndex, 0, dragged);
+
+  applyTimelineOrderToState(reordered);
+  renderTimeline();
+};
+
+window.handleTimelineDragEnd = function(event) {
+  state.timelineDragCourseId = null;
+  document.querySelectorAll(".timeline-row-block").forEach((el) => {
+    el.classList.remove("is-dragging", "is-drop-target");
+  });
+};
+
+function applyTimelineOrderToState(orderedCourses) {
+  orderedCourses.forEach((course, index) => {
+    const target = state.courses.find((item) => item.id === course.id);
+    if (target) target.timeline_order = index + 1;
+  });
+}
+
+window.saveTimelineOrder = async function() {
+  const courses = getTimelineSortedCourses();
+
+  if (!courses.length) {
+    alert("저장할 프로젝트 순서가 없습니다.");
+    return;
+  }
+
+  try {
+    setSyncStatus("타임라인 순서 저장 중...");
+
+    const updates = courses.map((course, index) => {
+      return db
+        .from("courses")
+        .update({
+          timeline_order: index + 1,
+          updated_by: nullIfEmpty(state.currentUserId),
+        })
+        .eq("id", course.id);
+    });
+
+    const responses = await Promise.all(updates);
+    responses.forEach(throwIfError);
+
+    await insertLog({
+      target_type: "과정",
+      action_type: "수정",
+      change_summary: "연간 타임라인 프로젝트 순서 변경",
+    });
+
+    await loadAll();
+    setSyncStatus(`순서 저장 완료 · ${formatNow()}`);
+    alert("연간 타임라인 순서가 저장되었습니다.");
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("순서 저장 오류");
+    alert("타임라인 순서 저장 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
+
+// ---------------------------------------------------------
+// 월 클릭 주간 프로젝트 레이어
+// ---------------------------------------------------------
+window.openWeeklyLayer = function(month) {
+  state.weeklyLayerMonth = month;
+
+  const baseDate = getDefaultMonthDate(2026, month);
+  const sunday = getSundayOfWeek(baseDate);
+
+  state.weeklyLayerBaseDate = sunday;
+  document.getElementById("weeklyBaseDate").value = toDateInputValue(sunday);
+
+  renderWeeklyLayer();
+  openModal("weeklyLayerModal");
+};
+
+function applyWeeklyBaseDate() {
+  const value = document.getElementById("weeklyBaseDate").value;
+  if (!value) {
+    alert("기준일을 선택해주세요.");
+    return;
+  }
+
+  const selectedDate = new Date(value + "T00:00:00");
+  const sunday = getSundayOfWeek(selectedDate);
+
+  state.weeklyLayerBaseDate = sunday;
+  document.getElementById("weeklyBaseDate").value = toDateInputValue(sunday);
+
+  renderWeeklyLayer();
+}
+
+function renderWeeklyLayer() {
+  const month = state.weeklyLayerMonth;
+  const baseDate = state.weeklyLayerBaseDate || getSundayOfWeek(getDefaultMonthDate(2026, month));
+  const content = document.getElementById("weeklyLayerContent");
+
+  document.getElementById("weeklyLayerTitle").innerHTML =
+    `<i class="fa-solid fa-calendar-week text-amber-400 mr-2"></i>2026년 ${month}월 주간 캘린더`;
+
+  const weeks = buildMonthWeeks(baseDate, month);
+  const events = collectTimelineEventsForMonth(month);
+
+  if (!events.length) {
+    content.innerHTML = `
+      <div class="weekly-empty">
+        <i class="fa-solid fa-calendar-xmark"></i>
+        <div>${month}월에 표시할 프로젝트 또는 차수가 없습니다.</div>
+      </div>
+    `;
+    return;
+  }
+
+  content.innerHTML = `
+    <div class="weekly-calendar-summary">
+      <div>
+        <b>${month}월 주간 캘린더</b>
+        <span>총 ${events.length}개 프로젝트/차수 · 일요일 시작 기준</span>
+      </div>
+      <div class="weekly-help">
+        차수 일정이 있으면 차수 기준, 차수가 없으면 과정 기간 기준으로 표시됩니다.
+      </div>
+    </div>
+
+    <div class="weekly-calendar-table">
+      <div class="weekly-calendar-head">
+        <div>주차</div>
+        <div>일</div>
+        <div>월</div>
+        <div>화</div>
+        <div>수</div>
+        <div>목</div>
+        <div>금</div>
+        <div>토</div>
+      </div>
+
+      <div class="weekly-calendar-body">
+        ${weeks.map((week, weekIndex) => {
+          const days = Array.from({ length: 7 }, (_, dayIndex) => addDays(week.start, dayIndex));
+          const weekEvents = events.filter((event) => rangesOverlap(event.startDate, event.endDate, week.start, week.end));
+
+          return `
+            <div class="weekly-calendar-row">
+              <div class="weekly-week-label">
+                <strong>${weekIndex + 1}주차</strong>
+                <span>${formatWeekRange(week.start, week.end)}</span>
+                <em>${weekEvents.length}건</em>
+              </div>
+
+              ${days.map((day) => {
+                const dayEvents = events.filter((event) => rangesOverlap(event.startDate, event.endDate, day, day));
+                const isOtherMonth = day.getMonth() + 1 !== month;
+                const isToday = isSameDate(day, new Date());
+
+                return `
+                  <div class="weekly-day-cell ${isOtherMonth ? "other-month" : ""} ${isToday ? "today" : ""}">
+                    <div class="weekly-day-number">
+                      <span>${day.getDate()}</span>
+                    </div>
+
+                    <div class="weekly-day-events">
+                      ${
+                        dayEvents.length
+                          ? dayEvents.slice(0, 3).map((event) => renderWeeklyEvent(event, day)).join("")
+                          : `<div class="weekly-day-empty">-</div>`
+                      }
+
+                      ${
+                        dayEvents.length > 3
+                          ? `<button type="button" class="weekly-day-more" onclick="openWeeklyDayDetail('${toDateInputValue(day)}')">+${dayEvents.length - 3}개 더보기</button>`
+                          : ""
+                      }
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </div>
+
+    <div id="weeklyDayDetailArea" class="weekly-day-detail-area hidden"></div>
+  `;
+}
+
+function renderWeeklyEvent(event, day = null) {
+  return `
+    <div class="weekly-calendar-event ${event.type === "round" ? "event-round" : "event-course"}" onclick="openCourseModalById('${event.courseId}')">
+      <div class="weekly-calendar-event-title">
+        ${event.type === "round" ? `<span>차</span>` : `<span>과</span>`}
+        ${escapeHtml(event.title)}
+      </div>
+      <div class="weekly-calendar-event-meta">
+        ${escapeHtml(formatShortDate(event.startDate))}~${escapeHtml(formatShortDate(event.endDate))}
+      </div>
+    </div>
+  `;
+}
+
+window.openWeeklyDayDetail = function(dateValue) {
+  const date = new Date(dateValue + "T00:00:00");
+  const month = state.weeklyLayerMonth;
+  const events = collectTimelineEventsForMonth(month)
+    .filter((event) => rangesOverlap(event.startDate, event.endDate, date, date));
+
+  const area = document.getElementById("weeklyDayDetailArea");
+  if (!area) return;
+
+  area.classList.remove("hidden");
+  area.innerHTML = `
+    <div class="weekly-detail-panel">
+      <div class="weekly-detail-head">
+        <div>
+          <b>${formatShortDate(date)} 상세 일정</b>
+          <span>${events.length}건</span>
+        </div>
+        <button type="button" onclick="document.getElementById('weeklyDayDetailArea').classList.add('hidden')">닫기</button>
+      </div>
+
+      <div class="weekly-detail-list">
+        ${
+          events.length
+            ? events.map((event) => `
+              <div class="weekly-detail-item" onclick="openCourseModalById('${event.courseId}')">
+                <div class="weekly-detail-top">
+                  <span class="weekly-type ${event.type === "round" ? "type-round" : "type-course"}">
+                    ${event.type === "round" ? "차수" : "과정"}
+                  </span>
+                  ${statusBadge(event.status)}
+                </div>
+                <div class="weekly-detail-title">${escapeHtml(event.title)}</div>
+                <div class="weekly-detail-meta">
+                  <i class="fa-solid fa-calendar-day"></i>
+                  ${formatShortDate(event.startDate)} ~ ${formatShortDate(event.endDate)}
+                </div>
+                <div class="weekly-detail-meta">
+                  <i class="fa-solid fa-user"></i>
+                  PM ${escapeHtml(getMemberName(event.pmId) || "-")}
+                </div>
+                ${
+                  event.place
+                    ? `<div class="weekly-detail-meta"><i class="fa-solid fa-location-dot"></i>${escapeHtml(event.place)}</div>`
+                    : ""
+                }
+              </div>
+            `).join("")
+            : `<div class="weekly-no-event">해당 날짜 일정 없음</div>`
+        }
+      </div>
+    </div>
+  `;
+
+  area.scrollIntoView({ behavior: "smooth", block: "nearest" });
+};
+
+function collectTimelineEventsForMonth(month) {
+  const courses = getFilteredCourses();
+  const events = [];
+
+  courses.forEach((course) => {
+    const activeRounds = state.rounds
+      .filter((round) => round.course_id === course.id)
+      .filter((round) => round.start_date_ymd || round.end_date_ymd);
+
+    if (activeRounds.length) {
+      activeRounds.forEach((round) => {
+        const startDate = yymmddToDate(round.start_date_ymd || round.end_date_ymd);
+        const endDate = yymmddToDate(round.end_date_ymd || round.start_date_ymd);
+
+        if (!startDate || !endDate) return;
+        if (!dateRangeTouchesMonth(startDate, endDate, month)) return;
+
+        events.push({
+          type: "round",
+          courseId: course.id,
+          roundId: round.id,
+          title: `${course.course_name} · ${round.round_no}차 ${round.round_name || ""}`,
+          startDate,
+          endDate,
+          status: round.status || course.status,
+          pmId: course.main_manager_id,
+          place: round.venue || course.location_detail || course.region || "",
+          updatedAt: round.updated_at || course.updated_at || course.created_at,
+        });
+      });
+    } else {
+      const startDate = yymmddToDate(course.start_date_ymd);
+      const endDate = yymmddToDate(course.end_date_ymd || course.start_date_ymd);
+
+      if (!startDate || !endDate) return;
+      if (!dateRangeTouchesMonth(startDate, endDate, month)) return;
+
+      events.push({
+        type: "course",
+        courseId: course.id,
+        roundId: null,
+        title: course.course_name,
+        startDate,
+        endDate,
+        status: course.status,
+        pmId: course.main_manager_id,
+        place: course.location_detail || course.region || "",
+        updatedAt: course.updated_at || course.created_at,
+      });
+    }
+  });
+
+  return events.sort((a, b) => {
+    const dateDiff = a.startDate - b.startDate;
+    if (dateDiff !== 0) return dateDiff;
+    return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+  });
+}
+
+function buildMonthWeeks(baseSunday, month) {
+  const weeks = [];
+  let cursor = new Date(baseSunday);
+
+  for (let i = 0; i < 6; i++) {
+    const start = new Date(cursor);
+    const end = addDays(start, 6);
+
+    if (i > 0 && start.getMonth() + 1 !== month && end.getMonth() + 1 !== month) {
+      break;
+    }
+
+    weeks.push({ start, end });
+    cursor = addDays(cursor, 7);
+  }
+
+  return weeks;
+}
+
+function getDefaultMonthDate(year, month) {
+  return new Date(year, month - 1, 1);
+}
+
+function getSundayOfWeek(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function rangesOverlap(startA, endA, startB, endB) {
+  return startA <= endB && endA >= startB;
+}
+
+function dateRangeTouchesMonth(startDate, endDate, month) {
+  const year = 2026;
+  const monthStart = new Date(year, month - 1, 1);
+  const monthEnd = new Date(year, month, 0);
+  return rangesOverlap(startDate, endDate, monthStart, monthEnd);
+}
+
+function yymmddToDate(value) {
+  if (!value || !/^\d{6}$/.test(value)) return null;
+
+  const yy = Number(value.slice(0, 2));
+  const mm = Number(value.slice(2, 4));
+  const dd = Number(value.slice(4, 6));
+
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+
+  return new Date(2000 + yy, mm - 1, dd);
+}
+
+function toDateInputValue(date) {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function isSameDate(a, b) {
+  return a.getFullYear() === b.getFullYear()
+    && a.getMonth() === b.getMonth()
+    && a.getDate() === b.getDate();
+}
+
+function formatShortDate(date) {
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+}
+
+function formatWeekRange(start, end) {
+  return `${formatShortDate(start)}(일) ~ ${formatShortDate(end)}(토)`;
+}
+
+
+// ---------------------------------------------------------
+// 과정 등록/수정
+// ---------------------------------------------------------
+window.openCourseModalById = async function(courseId) {
+  const course = getCourseById(courseId);
+  openCourseModal(course);
+};
+
+async function openCourseModal(course = null) {
+  document.getElementById("courseForm").reset();
+
+  const isEdit = !!course;
+  state.selectedCourseId = course?.id || "";
+  state.selectedSupportManagerIds = [];
+
+  document.getElementById("courseModalTitle").innerHTML = isEdit
+    ? `<i class="fa-solid fa-pen-to-square text-amber-400 mr-2"></i>[수정] ${escapeHtml(course.course_name)}`
+    : `<i class="fa-solid fa-pen-to-square text-amber-400 mr-2"></i>신규 프로젝트 등록`;
+
+  document.getElementById("hideCourseBtn").classList.toggle("hidden", !isEdit);
+  document.getElementById("courseInnerManageArea").classList.toggle("hidden", !isEdit);
+  document.getElementById("courseChecklistSection").classList.toggle("hidden", !isEdit);
+
+  document.getElementById("courseId").value = course?.id || "";
+  document.getElementById("courseName").value = course?.course_name || "";
+  document.getElementById("clientName").value = course?.client_name || "";
+  document.getElementById("targetAudience").value = course?.target_audience || "";
+  setValueIfExists("projectType", course?.project_type || course?.delivery_type || "출강");
+  document.getElementById("startDateYmd").value = course?.start_date_ymd || "";
+  document.getElementById("endDateYmd").value = course?.end_date_ymd || "";
+  document.getElementById("region").value = course?.region || "미정";
+  document.getElementById("locationDetail").value = course?.location_detail || "";
+  document.getElementById("businessManager").value = course?.business_manager_id || "";
+  document.getElementById("mainManager").value = course?.main_manager_id || "";
+  document.getElementById("subManager1").value = course?.sub_manager1_id || "";
+  setValueIfExists("subManager2", "");
+  document.getElementById("courseStatus").value = course?.status || "planning";
+  document.getElementById("expectedBudget").value = course?.expected_budget || "";
+  document.getElementById("courseNotes").value = course?.notes || "";
+
+  renderSupportManagerTags();
+
+  if (isEdit) {
+    document.getElementById("quickRoundNo").value = getNextRoundNo(course.id);
+    document.getElementById("quickRoundStatus").value = "planning";
+    renderCourseModalRounds(course.id);
+    await ensureChecklistStatuses(course.id, null, "course");
+    renderChecklist(course.id, null, "courseChecklistArea", "course");
+  }
+
+  openModal("courseModal");
+}
+
+async function saveCourse(event) {
+  event.preventDefault();
+
+  const courseStartDate = document.getElementById("startDateYmd").value.trim();
+  const courseEndDate = document.getElementById("endDateYmd").value.trim();
+
+  if (courseStartDate && !/^\d{6}$/.test(courseStartDate)) {
+    alert("과정 시작일은 YYMMDD 6자리로 입력해주세요.\n예: 260704");
+    return;
+  }
+
+  if (courseEndDate && !/^\d{6}$/.test(courseEndDate)) {
+    alert("과정 종료일은 YYMMDD 6자리로 입력해주세요.\n예: 260705");
+    return;
+  }
+
+  const id = document.getElementById("courseId").value;
+
+  const businessManagerId = document.getElementById("businessManager").value || null;
+  const mainManagerId = document.getElementById("mainManager").value || null;
+  const subManager1Id = document.getElementById("subManager1").value || null;
+  const subManager2Id = null;
+
+  const payload = {
+    course_name: document.getElementById("courseName").value.trim(),
+    client_name: document.getElementById("clientName").value.trim() || null,
+    target_audience: document.getElementById("targetAudience").value.trim() || null,
+    project_type: getValueIfExists("projectType") || "출강",
+
+    start_date_ymd: courseStartDate || null,
+    end_date_ymd: courseEndDate || null,
+    start_month: getMonthFromYmd(courseStartDate),
+    end_month: getMonthFromYmd(courseEndDate),
+
+    region: document.getElementById("region").value || "미정",
+    location_detail: document.getElementById("locationDetail").value.trim() || null,
+
+    business_manager_id: businessManagerId,
+    main_manager_id: mainManagerId,
+    sub_manager1_id: subManager1Id,
+    sub_manager2_id: null,
+    sub_manager3_id: null,
+    support_manager_ids: [],
+
+    status: document.getElementById("courseStatus").value,
+    expected_budget: toNumberOrNull(document.getElementById("expectedBudget").value),
+    notes: document.getElementById("courseNotes").value.trim() || null,
+    updated_by: state.currentUserId || null,
+  };
+
+  if (!payload.course_name) {
+    alert("프로젝트명을 입력해주세요.");
+    return;
+  }
+
+  try {
+    setSyncStatus("과정 저장 중...");
+
+    let response;
+    let actionType;
+
+    if (id) {
+      response = await db
+        .from("courses")
+        .update(payload)
+        .eq("id", id)
+        .select()
+        .single();
+
+      actionType = "수정";
+    } else {
+      response = await db
+        .from("courses")
+        .insert(payload)
+        .select()
+        .single();
+
+      actionType = "신규등록";
+    }
+
+    throwIfError(response);
+
+    const savedCourse = response.data;
+
+    await insertLog({
+      target_type: "과정",
+      course_id: savedCourse.id,
+      action_type: actionType,
+      change_summary: `${payload.course_name} ${actionType}`,
+    });
+
+    await loadAll();
+
+    state.selectedCourseId = savedCourse.id;
+    state.selectedSupportManagerIds = [];
+
+    if (!id) {
+      closeModal("courseModal");
+      alert("과정이 등록되었습니다. 다시 과정을 열면 차수와 체크리스트를 관리할 수 있습니다.");
+    } else {
+      document.getElementById("courseId").value = savedCourse.id;
+      document.getElementById("businessManager").value = savedCourse.business_manager_id || "";
+      document.getElementById("mainManager").value = savedCourse.main_manager_id || "";
+      document.getElementById("subManager1").value = savedCourse.sub_manager1_id || "";
+      setValueIfExists("subManager2", "");
+
+      renderSupportManagerTags();
+      renderCourseModalRounds(savedCourse.id);
+      await ensureChecklistStatuses(savedCourse.id, null, "course");
+      renderChecklist(savedCourse.id, null, "courseChecklistArea", "course");
+
+      renderStats();
+      renderViews();
+
+      alert("과정 정보와 담당자 배정이 저장되었습니다.");
+    }
+
+    setSyncStatus(`저장 완료 · ${formatNow()}`);
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("저장 오류");
+
+    alert(
+      "과정 저장 중 오류가 발생했습니다.\n\n" +
+      "오류 메시지:\n" +
+      (error.message || JSON.stringify(error))
+    );
   }
 }
 
-@media (max-width: 720px) {
-  .kanban-board-main,
-  .kanban-board-sub,
-  .rr-grid {
-    grid-template-columns: 1fr;
-  }
+async function hideCurrentCourse() {
+  const id = document.getElementById("courseId").value;
+  if (!id) return;
 
-  .rr-summary-4 {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
+  if (!confirm("이 과정은 DB에 남고 화면에서만 숨김 처리됩니다. 진행할까요?")) return;
 
-  .rr-result-summary {
-    grid-template-columns: 1fr;
-  }
+  try {
+    const course = getCourseById(id);
 
-  .support-select-row,
-  .checklist-edit-add-row,
-  .checklist-edit-row {
-    grid-template-columns: 1fr;
-  }
+    const response = await db
+      .from("courses")
+      .update({
+        is_active: false,
+        updated_by: nullIfEmpty(state.currentUserId),
+      })
+      .eq("id", id);
 
-  .checklist-summary {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+    throwIfError(response);
 
-  .checklist-actions {
-    width: 100%;
-    justify-content: space-between;
-  }
+    await insertLog({
+      target_type: "과정",
+      course_id: id,
+      action_type: "숨김처리",
+      change_summary: `${course?.course_name || "과정"} 숨김 처리`,
+    });
 
-  .checklist-card {
-    grid-template-columns: 22px 26px 1fr auto;
-    padding: 10px 11px;
-  }
-
-  .checklist-content {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-  }
-
-  .checklist-date {
-    font-size: 11px;
+    closeModal("courseModal");
+    await loadAll();
+  } catch (error) {
+    alert("숨김 처리 중 오류가 발생했습니다.\n\n" + error.message);
   }
 }
 
-/* =========================================================
-   STEP 3 추가 스타일
-   - 완료 컬럼 내부 스크롤 안내
-   - 차수별 장소/현장운영자 표시
-   - R&R 완료 이력 접기/스크롤
-   - 체크리스트 수정창 번호
-   ========================================================= */
+// ---------------------------------------------------------
+// 차수 관리
+// ---------------------------------------------------------
+function renderCourseModalRounds(courseId) {
+  const container = document.getElementById("courseModalRoundList");
+  const rounds = state.rounds
+    .filter((r) => r.course_id === courseId)
+    .sort((a, b) => a.round_no - b.round_no);
 
-.kanban-column-note {
-  margin: -6px 0 12px;
-  padding: 7px 9px;
-  border: 1px dashed #bbf7d0;
-  border-radius: 10px;
-  background: rgba(240, 253, 244, 0.8);
-  color: #15803d;
-  font-size: 11px;
-  font-weight: 900;
-  text-align: center;
-}
-
-.kanban-completed .kanban-body-v2 {
-  max-height: 680px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.kanban-completed .kanban-body-v2::-webkit-scrollbar,
-.rr-history-list::-webkit-scrollbar {
-  width: 7px;
-}
-
-.kanban-completed .kanban-body-v2::-webkit-scrollbar-thumb,
-.rr-history-list::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 999px;
-}
-
-.kanban-completed .kanban-body-v2::-webkit-scrollbar-track,
-.rr-history-list::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 999px;
-}
-
-.round-preview-item-with-field {
-  align-items: flex-start;
-}
-
-.round-preview-item-with-field .round-preview-name {
-  white-space: normal;
-  line-height: 1.35;
-}
-
-.round-preview-venue,
-.round-preview-field {
-  display: block;
-  margin-top: 2px;
-  font-size: 10px;
-  font-weight: 800;
-  color: #64748b;
-  line-height: 1.3;
-}
-
-.round-preview-field {
-  color: #c2410c;
-}
-
-.round-field-manager-block {
-  grid-column: 1 / -1;
-}
-
-.round-field-tag {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border-color: #bfdbfe;
-}
-
-.rr-history-box {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.rr-history-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-
-.rr-history-title span {
-  font-size: 11px;
-  color: #94a3b8;
-  font-weight: 900;
-}
-
-.rr-history-toggle {
-  width: 100%;
-  margin-top: 8px;
-  padding: 8px 10px;
-  border: 1px dashed #cbd5e1;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #475569;
-  font-size: 12px;
-  font-weight: 900;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.rr-history-toggle:hover {
-  border-color: #16a34a;
-  background: #f0fdf4;
-  color: #15803d;
-}
-
-.rr-history-list {
-  margin-top: 8px;
-  max-height: 230px;
-  overflow-y: auto;
-  padding-right: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.rr-history-list.hidden {
-  display: none;
-}
-
-.rr-empty-small {
-  padding: 12px 8px;
-  font-size: 12px;
-}
-
-.checklist-edit-row {
-  grid-template-columns: 28px 1fr auto;
-}
-
-.checklist-edit-number {
-  width: 24px;
-  height: 24px;
-  border-radius: 8px;
-  background: #f1f5f9;
-  color: #475569;
-  font-size: 11px;
-  font-weight: 900;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.checklist-edit-row.is-hidden .checklist-edit-number {
-  background: #e2e8f0;
-  color: #94a3b8;
-}
-
-@media (max-width: 720px) {
-  .checklist-edit-row {
-    grid-template-columns: 28px 1fr;
+  if (!rounds.length) {
+    container.innerHTML = emptyBox("등록된 차수가 없습니다.");
+    return;
   }
 
-  .checklist-edit-actions {
-    grid-column: 1 / -1;
-    justify-content: flex-end;
+  container.innerHTML = `
+    <div class="overflow-x-auto">
+      <table class="round-table">
+        <thead>
+          <tr>
+            <th>차수</th>
+            <th>세부 과정명</th>
+            <th>일정</th>
+            <th>상태</th>
+            <th>장소</th>
+            <th>운영지원/현장</th>
+            <th>실적</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rounds.map((round) => `
+            <tr>
+              <td class="font-bold">${round.round_no}차</td>
+              <td>${escapeHtml(round.round_name || "-")}</td>
+              <td>${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</td>
+              <td>${statusBadge(round.status)}</td>
+              <td><span class="small-muted">${escapeHtml(round.venue || "-")}</span></td>
+              <td><span class="small-muted">${escapeHtml(getRoundFieldManagerNames(round.field_manager_ids) || "-")}</span></td>
+              <td>
+                <span class="small-muted">
+                  인원 ${round.participant_count ?? "-"} / 만족도 ${round.satisfaction ?? "-"}
+                </span>
+              </td>
+              <td>
+                <div class="flex gap-1 flex-wrap">
+                  <button type="button" class="btn-secondary" onclick="openRoundModalById('${round.id}')">수정</button>
+                  <button type="button" class="btn-secondary" onclick="duplicateRound('${round.id}')">복사</button>
+                  <button type="button" class="btn-success" onclick="openCompleteModal('${round.id}')">교육 완료</button>
+                </div>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+async function quickAddRound() {
+  const courseId = state.selectedCourseId;
+  if (!courseId) {
+    alert("먼저 과정을 저장해주세요.");
+    return;
   }
 
-  .kanban-completed .kanban-body-v2 {
-    max-height: 520px;
+  const start = document.getElementById("quickRoundStart").value.trim();
+  const end = document.getElementById("quickRoundEnd").value.trim();
+
+  if (start && !/^\d{6}$/.test(start)) {
+    alert("차수 시작일은 YYMMDD 6자리로 입력해주세요.");
+    return;
+  }
+
+  if (end && !/^\d{6}$/.test(end)) {
+    alert("차수 종료일은 YYMMDD 6자리로 입력해주세요.");
+    return;
+  }
+
+  try {
+    const payload = {
+      course_id: courseId,
+      round_no: Number(document.getElementById("quickRoundNo").value || getNextRoundNo(courseId)),
+      round_name: document.getElementById("quickRoundName").value.trim() || null,
+      start_date_ymd: start || null,
+      end_date_ymd: end || null,
+      date_label: makeDateLabel(start, end),
+      status: document.getElementById("quickRoundStatus").value || "planning",
+      field_manager_ids: [],
+      updated_by: nullIfEmpty(state.currentUserId),
+    };
+
+    const response = await db.from("rounds").insert(payload).select().single();
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "차수",
+      course_id: courseId,
+      round_id: response.data.id,
+      action_type: "신규등록",
+      change_summary: `${payload.round_no}차 신규 등록`,
+    });
+
+    document.getElementById("quickRoundName").value = "";
+    document.getElementById("quickRoundStart").value = "";
+    document.getElementById("quickRoundEnd").value = "";
+
+    await loadAll();
+    state.selectedCourseId = courseId;
+    document.getElementById("quickRoundNo").value = getNextRoundNo(courseId);
+    renderCourseModalRounds(courseId);
+  } catch (error) {
+    alert("차수 추가 중 오류가 발생했습니다.\n\n" + error.message);
   }
 }
 
+window.openRoundModalById = async function(roundId) {
+  const round = state.rounds.find((r) => r.id === roundId);
+  if (!round) return;
 
-/* ---------------------------------------------------------
-   2026-06 수정 반영: 프로젝트 담당자/사업단 체크리스트
-   --------------------------------------------------------- */
-.completed-hint {
-  margin-top: 2px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #64748b;
+  state.selectedRoundId = roundId;
+  state.selectedCourseId = round.course_id;
+  state.selectedRoundFieldManagerIds = Array.isArray(round.field_manager_ids) ? [...round.field_manager_ids] : [];
+
+  document.getElementById("roundForm").reset();
+  document.getElementById("roundModalTitle").textContent = `${round.round_no}차 수정`;
+
+  document.getElementById("roundId").value = round.id;
+  document.getElementById("roundNo").value = round.round_no || "";
+  document.getElementById("roundName").value = round.round_name || "";
+  document.getElementById("roundStartDate").value = round.start_date_ymd || "";
+  document.getElementById("roundEndDate").value = round.end_date_ymd || "";
+  document.getElementById("roundDateLabel").value = round.date_label || "";
+  document.getElementById("roundStatus").value = round.status || "planning";
+  document.getElementById("roundVenue").value = round.venue || "";
+  document.getElementById("roundRemarks").value = round.remarks || "";
+  document.getElementById("roundMemo").value = round.round_memo || "";
+  document.getElementById("operationHours").value = round.operation_hours || "";
+  document.getElementById("satisfaction").value = formatDecimal2ForInput(round.satisfaction);
+  setValueIfExists("instructorSatisfaction", formatDecimal2ForInput(round.instructor_satisfaction));
+  setValueIfExists("operationSatisfaction", formatDecimal2ForInput(round.operation_satisfaction));
+  document.getElementById("participantCount").value = round.participant_count || "";
+
+  ensureRoundFieldManagerUI();
+  ensureRoundSatisfactionUI();
+  fillRoundFieldManagerSelect();
+  renderRoundFieldManagerTags();
+
+  document.getElementById("hideRoundBtn").classList.remove("hidden");
+  toggleCompletedFields();
+
+  await ensureChecklistStatuses(round.course_id, round.id, "round");
+  renderChecklist(round.course_id, round.id, "roundChecklistArea", "round");
+
+  openModal("roundModal");
+};
+
+function toggleCompletedFields() {
+  const status = document.getElementById("roundStatus").value;
+  document.getElementById("completedFields").classList.toggle("hidden", status !== "completed");
 }
 
-.checklist-edit-title,
-.checklist-name,
-.checklist-content {
-  word-break: keep-all;
-  overflow-wrap: anywhere;
-  line-height: 1.45;
+async function saveRound(event) {
+  event.preventDefault();
+
+  const id = document.getElementById("roundId").value;
+  const startDate = document.getElementById("roundStartDate").value.trim();
+  const endDate = document.getElementById("roundEndDate").value.trim();
+
+  if (startDate && !/^\d{6}$/.test(startDate)) {
+    alert("교육시작일은 YYMMDD 6자리로 입력해주세요.");
+    return;
+  }
+
+  if (endDate && !/^\d{6}$/.test(endDate)) {
+    alert("교육종료일은 YYMMDD 6자리로 입력해주세요.");
+    return;
+  }
+
+  try {
+    const status = document.getElementById("roundStatus").value;
+
+    const payload = {
+      round_no: Number(document.getElementById("roundNo").value),
+      round_name: document.getElementById("roundName").value.trim() || null,
+      start_date_ymd: startDate || null,
+      end_date_ymd: endDate || null,
+      date_label: document.getElementById("roundDateLabel").value.trim() || makeDateLabel(startDate, endDate),
+      status,
+      field_manager_ids: state.selectedRoundFieldManagerIds || [],
+      venue: document.getElementById("roundVenue").value.trim() || null,
+      round_memo: document.getElementById("roundMemo").value.trim() || null,
+      remarks: document.getElementById("roundRemarks").value.trim() || null,
+      updated_by: nullIfEmpty(state.currentUserId),
+    };
+
+    if (status === "completed") {
+      payload.operation_hours = toNumberOrNull(document.getElementById("operationHours").value);
+      payload.satisfaction = toDecimal2OrNull(document.getElementById("satisfaction").value);
+      payload.instructor_satisfaction = toDecimal2OrNull(getValueIfExists("instructorSatisfaction"));
+      payload.operation_satisfaction = toDecimal2OrNull(getValueIfExists("operationSatisfaction"));
+      payload.participant_count = toNumberOrNull(document.getElementById("participantCount").value);
+      payload.completed_at = new Date().toISOString();
+    }
+
+    const response = await db.from("rounds").update(payload).eq("id", id).select().single();
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "차수",
+      course_id: response.data.course_id,
+      round_id: id,
+      action_type: "수정",
+      change_summary: `${payload.round_no}차 수정`,
+    });
+
+    await loadAll();
+
+    state.selectedCourseId = response.data.course_id;
+    renderCourseModalRounds(response.data.course_id);
+    closeModal("roundModal");
+  } catch (error) {
+    alert("차수 저장 중 오류가 발생했습니다.\n\n" + error.message);
+  }
 }
 
-.checklist-edit-row {
-  align-items: flex-start;
+window.duplicateRound = async function(roundId) {
+  const source = state.rounds.find((r) => r.id === roundId);
+  if (!source) {
+    alert("복사할 차수를 찾을 수 없습니다.");
+    return;
+  }
+
+  if (!confirm(`${source.round_no}차를 복사하시겠습니까?\n운영 실적은 복사되지 않고, 장소/차수별 운영 지원·운영지원/현장/체크리스트 구성만 복사됩니다.`)) return;
+
+  try {
+    const nextNo = getNextRoundNo(source.course_id);
+    const payload = {
+      course_id: source.course_id,
+      round_no: nextNo,
+      round_name: source.round_name || null,
+      start_date_ymd: null,
+      end_date_ymd: null,
+      date_label: null,
+      status: "planning",
+      venue: source.venue || null,
+      field_manager_ids: Array.isArray(source.field_manager_ids) ? source.field_manager_ids : [],
+      round_memo: source.round_memo || null,
+      remarks: source.remarks || null,
+      operation_hours: null,
+      satisfaction: null,
+      instructor_satisfaction: null,
+      operation_satisfaction: null,
+      participant_count: null,
+      completed_at: null,
+      updated_by: nullIfEmpty(state.currentUserId),
+    };
+
+    const roundRes = await db.from("rounds").insert(payload).select().single();
+    throwIfError(roundRes);
+
+    const newRound = roundRes.data;
+
+    const sourceStatuses = state.checklistStatuses.filter(
+      (s) => normalizeId(s.round_id) === normalizeId(source.id) && s.course_id === source.course_id
+    );
+
+    if (sourceStatuses.length) {
+      const copiedStatuses = sourceStatuses.map((s) => ({
+        course_id: source.course_id,
+        round_id: newRound.id,
+        checklist_item_id: s.checklist_item_id,
+        is_done: false,
+        is_hidden: !!s.is_hidden,
+        sort_order: Number(s.sort_order) || 9999,
+        updated_by: nullIfEmpty(state.currentUserId),
+      }));
+
+      const statusRes = await db.from("checklist_statuses").insert(copiedStatuses);
+      throwIfError(statusRes);
+    }
+
+    await insertLog({
+      target_type: "차수",
+      course_id: source.course_id,
+      round_id: newRound.id,
+      action_type: "복사",
+      change_summary: `${source.round_no}차를 ${nextNo}차로 복사`,
+    });
+
+    await loadAll();
+    state.selectedCourseId = source.course_id;
+    renderCourseModalRounds(source.course_id);
+    alert(`${nextNo}차가 복사되었습니다. 일정은 새 차수에서 수정해주세요.`);
+  } catch (error) {
+    console.error(error);
+    alert("차수 복사 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
+async function hideCurrentRound() {
+  const id = document.getElementById("roundId").value;
+  if (!id) return;
+
+  if (!confirm("이 차수는 DB에 남고 화면에서만 숨김 처리됩니다. 진행할까요?")) return;
+
+  try {
+    const round = state.rounds.find((r) => r.id === id);
+    const response = await db
+      .from("rounds")
+      .update({
+        is_active: false,
+        updated_by: nullIfEmpty(state.currentUserId),
+      })
+      .eq("id", id);
+
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "차수",
+      course_id: round?.course_id || null,
+      round_id: id,
+      action_type: "숨김처리",
+      change_summary: "차수 숨김 처리",
+    });
+
+    await loadAll();
+
+    if (round?.course_id) {
+      state.selectedCourseId = round.course_id;
+      renderCourseModalRounds(round.course_id);
+    }
+
+    closeModal("roundModal");
+  } catch (error) {
+    alert("차수 숨김 처리 중 오류가 발생했습니다.\n\n" + error.message);
+  }
 }
 
-.checklist-edit-actions button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+// ---------------------------------------------------------
+// 교육 완료 처리
+// ---------------------------------------------------------
+window.openCompleteModal = function(roundId) {
+  const round = state.rounds.find((r) => r.id === roundId);
+  if (!round) return;
+
+  document.getElementById("completeForm").reset();
+  document.getElementById("completeRoundId").value = round.id;
+  document.getElementById("completeRoundInfo").textContent =
+    `${round.round_no}차 · ${round.round_name || ""} · ${round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || ""}`;
+
+  ensureCompleteSatisfactionUI();
+
+  document.getElementById("completeParticipantCount").value = round.participant_count || "";
+  document.getElementById("completeSatisfaction").value = formatDecimal2ForInput(round.satisfaction);
+  setValueIfExists("completeInstructorSatisfaction", formatDecimal2ForInput(round.instructor_satisfaction));
+  setValueIfExists("completeOperationSatisfaction", formatDecimal2ForInput(round.operation_satisfaction));
+  document.getElementById("completeOperationHours").value = round.operation_hours || "";
+  document.getElementById("completeRemarks").value = round.remarks || "";
+
+  openModal("completeModal");
+};
+
+async function submitCompleteRound(event) {
+  event.preventDefault();
+
+  const roundId = document.getElementById("completeRoundId").value;
+  const round = state.rounds.find((r) => r.id === roundId);
+  if (!round) return;
+
+  try {
+    const payload = {
+      status: "completed",
+      participant_count: toNumberOrNull(document.getElementById("completeParticipantCount").value),
+      satisfaction: toDecimal2OrNull(document.getElementById("completeSatisfaction").value),
+      instructor_satisfaction: toDecimal2OrNull(getValueIfExists("completeInstructorSatisfaction")),
+      operation_satisfaction: toDecimal2OrNull(getValueIfExists("completeOperationSatisfaction")),
+      operation_hours: toNumberOrNull(document.getElementById("completeOperationHours").value),
+      remarks: document.getElementById("completeRemarks").value.trim() || null,
+      completed_at: new Date().toISOString(),
+      updated_by: nullIfEmpty(state.currentUserId),
+    };
+
+    const response = await db.from("rounds").update(payload).eq("id", roundId).select().single();
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "차수",
+      course_id: round.course_id,
+      round_id: roundId,
+      action_type: "수정",
+      change_summary: `${round.round_no}차 교육 완료 및 실적 입력`,
+    });
+
+    closeModal("completeModal");
+    closeModal("roundModal");
+
+    await loadAll();
+    state.selectedCourseId = round.course_id;
+    renderCourseModalRounds(round.course_id);
+
+    alert("교육 완료 처리가 저장되었습니다.");
+  } catch (error) {
+    alert("교육 완료 처리 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+}
+
+// ---------------------------------------------------------
+// 체크리스트
+// ---------------------------------------------------------
+async function ensureChecklistStatuses(courseId, roundId = null, scope = "course") {
+  const usableItems = getChecklistItemsByScope(scope, courseId, roundId);
+
+  const existingItemIds = state.checklistStatuses
+    .filter((s) => s.course_id === courseId && normalizeId(s.round_id) === normalizeId(roundId))
+    .map((s) => s.checklist_item_id);
+
+  const missing = usableItems.filter((item) => !existingItemIds.includes(item.id));
+
+  if (!missing.length) return;
+
+const baseOrder = state.checklistStatuses
+  .filter((s) => s.course_id === courseId && normalizeId(s.round_id) === normalizeId(roundId))
+  .reduce((max, s) => Math.max(max, Number(s.sort_order) || 0), 0);
+
+const rows = missing.map((item, index) => ({
+  course_id: courseId,
+  round_id: roundId,
+  checklist_item_id: item.id,
+  is_done: false,
+  is_hidden: false,
+  sort_order: baseOrder + index + 1,
+  updated_by: nullIfEmpty(state.currentUserId),
+}));
+
+  const response = await db.from("checklist_statuses").insert(rows).select();
+  throwIfError(response);
+
+  state.checklistStatuses = [...state.checklistStatuses, ...(response.data || [])];
+}
+
+function renderChecklist(courseId, roundId = null, containerId, scope = "course") {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const items = getChecklistItemsByScope(scope, courseId, roundId);
+
+  const rows = items
+    .map((item) => {
+      const status = state.checklistStatuses.find(
+        (s) =>
+          s.course_id === courseId &&
+          normalizeId(s.round_id) === normalizeId(roundId) &&
+          s.checklist_item_id === item.id
+      );
+
+      return {
+        item,
+        status,
+        isDone: !!status?.is_done,
+        isHidden: !!status?.is_hidden,
+        checkedAt: status?.is_done ? status?.updated_at : null,
+      };
+    })
+    .filter((row) => !row.isHidden)
+    .sort((a, b) => {
+      const orderA = Number(a.status?.sort_order ?? a.item.sort_order ?? 9999);
+      const orderB = Number(b.status?.sort_order ?? b.item.sort_order ?? 9999);
+
+      if (orderA !== orderB) return orderA - orderB;
+
+      return String(a.item.title || "").localeCompare(String(b.item.title || ""));
+    });
+
+  const totalCount = rows.length;
+  const doneCount = rows.filter((row) => row.isDone).length;
+  const percent = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
+
+  const title = scope === "round" ? "차수 운영 체크리스트" : "프로젝트 체크리스트";
+  const guideText =
+    scope === "round"
+      ? "해당 차수에만 적용되는 운영 체크리스트입니다. 필요한 항목을 직접 추가·숨김 처리할 수 있습니다."
+      : "이 프로젝트에만 적용되는 체크리스트입니다. 기본 항목을 바탕으로 항목을 직접 추가·숨김 처리할 수 있습니다.";
+
+  container.innerHTML = `
+    <div class="checklist-panel">
+      <div class="checklist-summary">
+        <div>
+          <div class="checklist-title">${title}</div>
+          <div class="checklist-guide">${guideText}</div>
+        </div>
+
+        <div class="checklist-actions">
+          <button type="button" class="checklist-edit-btn" onclick="openChecklistEditModal('${courseId}', '${roundId || ""}', '${scope}', '${containerId}')">
+            <i class="fa-solid fa-pen-to-square"></i>
+            체크리스트 수정하기
+          </button>
+
+          <div class="checklist-score">
+            <strong>${doneCount}</strong>
+            <span>/ ${totalCount}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="checklist-progress">
+        <div class="checklist-progress-fill" style="width:${percent}%;"></div>
+      </div>
+
+      <div class="checklist-percent-row">
+        <span>완료율</span>
+        <b>${percent}%</b>
+      </div>
+
+      <div class="checklist-list">
+        ${
+          rows.length
+            ? rows.map(({ item, isDone, checkedAt }, index) => `
+              <label class="checklist-card ${isDone ? "is-done" : ""}">
+                <input
+                  type="checkbox"
+                  ${isDone ? "checked" : ""}
+                  onchange="toggleChecklist('${courseId}', '${roundId || ""}', '${item.id}', this.checked, '${containerId}', '${scope}')"
+                />
+
+                <span class="checklist-custom-box">
+                  <i class="fa-solid fa-check"></i>
+                </span>
+
+                <span class="checklist-number">${index + 1}</span>
+
+                <span class="checklist-content">
+                  <span class="checklist-name">${escapeHtml(item.title)}</span>
+                  ${
+                    checkedAt
+                      ? `<span class="checklist-date">체크일 ${escapeHtml(formatTinyDate(checkedAt))}</span>`
+                      : `<span class="checklist-date muted">미체크</span>`
+                  }
+                </span>
+
+                <span class="checklist-state">
+                  ${isDone ? "완료" : "대기"}
+                </span>
+              </label>
+            `).join("")
+            : `<div class="checklist-empty">등록된 체크리스트 항목이 없습니다. [체크리스트 수정하기]로 항목을 추가해보세요.</div>`
+        }
+      </div>
+    </div>
+  `;
+}
+
+window.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, containerId, scope) {
+  const roundId = roundIdRaw || null;
+
+  try {
+    const existing = state.checklistStatuses.find(
+      (s) =>
+        s.course_id === courseId &&
+        normalizeId(s.round_id) === normalizeId(roundId) &&
+        s.checklist_item_id === itemId
+    );
+
+    let response;
+
+    if (existing) {
+      response = await db
+        .from("checklist_statuses")
+        .update({
+          is_done: checked,
+          is_hidden: false,
+          updated_by: nullIfEmpty(state.currentUserId),
+        })
+        .eq("id", existing.id)
+        .select()
+        .single();
+    } else {
+      response = await db
+        .from("checklist_statuses")
+        .insert({
+          course_id: courseId,
+          round_id: roundId,
+          checklist_item_id: itemId,
+          is_done: checked,
+          is_hidden: false,
+          sort_order: getNextChecklistSortOrder(courseId, roundId),
+          updated_by: nullIfEmpty(state.currentUserId),
+        })
+        .select()
+        .single();
+    }
+
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "체크리스트",
+      course_id: courseId,
+      round_id: roundId,
+      action_type: "수정",
+      change_summary: `체크리스트 ${checked ? "완료" : "미완료"} 처리`,
+    });
+
+    await loadAll();
+    renderChecklist(courseId, roundId, containerId, scope);
+  } catch (error) {
+    alert("체크리스트 저장 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
+function getChecklistItemsByScope(scope, courseId = null, roundId = null) {
+  const businessChecklistTitles = ["교육 제안/기획", "제안서 확정", "매출 인식"];
+
+  return state.checklistItems.filter((item) => {
+    if (scope === "course") {
+      // 프로젝트 체크리스트는 사업단 확인용 3개 항목만 사용합니다.
+      if (item.is_custom) return item.course_id === courseId && !item.round_id;
+      return (
+        (item.scope === "course" || item.scope === "business" || !item.scope) &&
+        !item.course_id &&
+        !item.round_id &&
+        businessChecklistTitles.includes(String(item.title || "").trim())
+      );
+    }
+
+    const itemScopeMatched = item.scope === "round" || item.scope === "both";
+    if (!itemScopeMatched) return false;
+
+    // 차수별 체크리스트는 기존 운영 체크리스트를 그대로 사용합니다.
+    if (!item.is_custom && !item.course_id && !item.round_id) return true;
+
+    if (item.is_custom) {
+      return item.course_id === courseId && item.round_id === roundId;
+    }
+
+    return false;
+  });
+}
+
+
+// ---------------------------------------------------------
+// 체크리스트 항목 편집
+// ---------------------------------------------------------
+window.openChecklistEditModal = async function(courseId, roundIdRaw, scope, containerId) {
+  const roundId = roundIdRaw || null;
+
+  try {
+    document.getElementById("checklistEditCourseId").value = courseId;
+    document.getElementById("checklistEditRoundId").value = roundId || "";
+    document.getElementById("checklistEditScope").value = scope;
+    document.getElementById("newChecklistTitle").value = "";
+
+    const course = getCourseById(courseId);
+    const round = roundId ? state.rounds.find((r) => r.id === roundId) : null;
+
+    document.getElementById("checklistEditInfo").textContent =
+      scope === "round"
+        ? `${course?.course_name || ""} · ${round?.round_no || ""}차 ${round?.round_name || ""}에만 적용됩니다.`
+        : `${course?.course_name || ""} 프로젝트에만 적용됩니다.`;
+
+    await ensureChecklistStatuses(courseId, roundId, scope);
+    renderChecklistEditList(courseId, roundId, scope, containerId);
+    openModal("checklistEditModal");
+  } catch (error) {
+    console.error(error);
+    alert("체크리스트 수정 창을 여는 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
+function renderChecklistEditList(courseId, roundId = null, scope = "course", containerId = "") {
+  const container = document.getElementById("checklistEditList");
+  if (!container) return;
+
+  const items = getChecklistItemsByScope(scope, courseId, roundId);
+
+  const rows = items.map((item) => {
+    const status = state.checklistStatuses.find(
+      (s) =>
+        s.course_id === courseId &&
+        normalizeId(s.round_id) === normalizeId(roundId) &&
+        s.checklist_item_id === item.id
+    );
+
+    return {
+      item,
+      status,
+      isHidden: !!status?.is_hidden,
+      sortOrder: Number(status?.sort_order ?? item.sort_order ?? 9999),
+    };
+  }).sort((a, b) => {
+    if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+    return String(a.item.title || "").localeCompare(String(b.item.title || ""));
+  });
+
+  if (!rows.length) {
+    container.innerHTML = `<div class="checklist-edit-empty">등록된 항목이 없습니다.</div>`;
+    return;
+  }
+
+  container.innerHTML = rows.map(({ item, isHidden }, index) => `
+    <div class="checklist-edit-row ${isHidden ? "is-hidden" : ""}">
+      <div>
+        <div class="checklist-edit-title">
+          <span class="checklist-edit-number">${index + 1}</span>
+          ${escapeHtml(item.title)}
+          ${item.is_custom ? `<span class="custom-mark">직접추가</span>` : `<span class="default-mark">기본</span>`}
+        </div>
+        <div class="checklist-edit-meta">
+          ${isHidden ? "숨김 처리됨" : "표시 중"}
+        </div>
+      </div>
+
+      <div class="checklist-edit-actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          ${index === 0 ? "disabled" : ""}
+          onclick="moveChecklistItem('${courseId}', '${roundId || ""}', '${item.id}', -1, '${scope}', '${containerId}')"
+        >↑</button>
+
+        <button
+          type="button"
+          class="btn-secondary"
+          ${index === rows.length - 1 ? "disabled" : ""}
+          onclick="moveChecklistItem('${courseId}', '${roundId || ""}', '${item.id}', 1, '${scope}', '${containerId}')"
+        >↓</button>
+
+        ${
+          isHidden
+            ? `<button type="button" class="btn-secondary" onclick="restoreChecklistItem('${courseId}', '${roundId || ""}', '${item.id}', '${scope}', '${containerId}')">복원</button>`
+            : `<button type="button" class="btn-danger" onclick="hideChecklistItem('${courseId}', '${roundId || ""}', '${item.id}', '${scope}', '${containerId}')">삭제</button>`
+        }
+      </div>
+    </div>
+  `).join("");
+}
+
+window.moveChecklistItem = async function(courseId, roundIdRaw, itemId, direction, scope, containerId) {
+  const roundId = roundIdRaw || null;
+  const targetContainerId = containerId || (scope === "round" ? "roundChecklistArea" : "courseChecklistArea");
+
+  try {
+    await ensureChecklistStatuses(courseId, roundId, scope);
+
+    const items = getChecklistItemsByScope(scope, courseId, roundId);
+
+    const rows = items
+      .map((item) => {
+        const status = state.checklistStatuses.find(
+          (s) =>
+            s.course_id === courseId &&
+            normalizeId(s.round_id) === normalizeId(roundId) &&
+            s.checklist_item_id === item.id
+        );
+
+        return {
+          item,
+          status,
+          isHidden: !!status?.is_hidden,
+          sortOrder: Number(status?.sort_order ?? item.sort_order ?? 9999),
+        };
+      })
+      .filter((row) => !row.isHidden && row.status)
+      .sort((a, b) => {
+        if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+        return String(a.item.title || "").localeCompare(String(b.item.title || ""));
+      });
+
+    const currentIndex = rows.findIndex((row) => row.item.id === itemId);
+    if (currentIndex < 0) return;
+
+    const nextIndex = currentIndex + Number(direction);
+    if (nextIndex < 0 || nextIndex >= rows.length) return;
+
+    const reordered = [...rows];
+    const [target] = reordered.splice(currentIndex, 1);
+    reordered.splice(nextIndex, 0, target);
+
+    const updates = reordered.map((row, index) => {
+      return db
+        .from("checklist_statuses")
+        .update({
+          sort_order: index + 1,
+          updated_by: nullIfEmpty(state.currentUserId),
+        })
+        .eq("id", row.status.id);
+    });
+
+    const responses = await Promise.all(updates);
+    responses.forEach(throwIfError);
+
+    await insertLog({
+      target_type: "체크리스트",
+      course_id: courseId,
+      round_id: roundId,
+      action_type: "수정",
+      change_summary: "체크리스트 항목 순서 변경",
+    });
+
+    await loadAll();
+
+    renderChecklistEditList(courseId, roundId, scope, targetContainerId);
+    renderChecklist(courseId, roundId, targetContainerId, scope);
+  } catch (error) {
+    console.error(error);
+    alert("체크리스트 순서 변경 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};;
+
+async function addCustomChecklistItem() {
+  const courseId = document.getElementById("checklistEditCourseId").value;
+  const roundId = document.getElementById("checklistEditRoundId").value || null;
+  const scope = document.getElementById("checklistEditScope").value || "course";
+  const title = document.getElementById("newChecklistTitle").value.trim();
+
+  if (!title) {
+    alert("추가할 체크리스트 항목명을 입력해주세요.");
+    return;
+  }
+
+  try {
+    const payload = {
+      code: makeCustomChecklistCode(scope),
+      title,
+      scope,
+      is_custom: true,
+      course_id: courseId,
+      round_id: scope === "round" ? roundId : null,
+      sort_order: getNextChecklistSortOrder(courseId, scope === "round" ? roundId : null),
+      is_active: true,
+    };
+
+    const itemRes = await db.from("checklist_items").insert(payload).select().single();
+    throwIfError(itemRes);
+
+    const statusRes = await db.from("checklist_statuses").insert({
+      course_id: courseId,
+      round_id: scope === "round" ? roundId : null,
+      checklist_item_id: itemRes.data.id,
+      is_done: false,
+      is_hidden: false,
+      sort_order: getNextChecklistSortOrder(courseId, roundId),
+      updated_by: nullIfEmpty(state.currentUserId),
+    }).select().single();
+
+    throwIfError(statusRes);
+
+    await insertLog({
+      target_type: "체크리스트",
+      course_id: courseId,
+      round_id: scope === "round" ? roundId : null,
+      action_type: "신규등록",
+      change_summary: `커스텀 체크리스트 추가: ${title}`,
+    });
+
+    document.getElementById("newChecklistTitle").value = "";
+    await loadAll();
+
+    renderChecklistEditList(courseId, roundId, scope);
+    renderChecklist(courseId, roundId, scope === "round" ? "roundChecklistArea" : "courseChecklistArea", scope);
+
+    alert("체크리스트 항목이 추가되었습니다.");
+  } catch (error) {
+    alert("체크리스트 항목 추가 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+}
+
+window.hideChecklistItem = async function(courseId, roundIdRaw, itemId, scope, containerId) {
+  const roundId = roundIdRaw || null;
+
+  if (!confirm("이 항목을 현재 프로젝트/차수에서 삭제할까요?\n기본 항목은 다른 프로젝트에는 영향을 주지 않고 현재 화면에서만 숨김 처리됩니다.")) {
+    return;
+  }
+
+  try {
+    const item = state.checklistItems.find((i) => i.id === itemId);
+
+    if (item?.is_custom) {
+      const response = await db
+        .from("checklist_items")
+        .update({ is_active: false })
+        .eq("id", itemId);
+      throwIfError(response);
+    } else {
+      let existing = state.checklistStatuses.find(
+        (s) =>
+          s.course_id === courseId &&
+          normalizeId(s.round_id) === normalizeId(roundId) &&
+          s.checklist_item_id === itemId
+      );
+
+      if (!existing) {
+        const insertRes = await db.from("checklist_statuses").insert({
+          course_id: courseId,
+          round_id: roundId,
+          checklist_item_id: itemId,
+          is_done: false,
+          is_hidden: true,
+          updated_by: nullIfEmpty(state.currentUserId),
+        }).select().single();
+        throwIfError(insertRes);
+      } else {
+        const updateRes = await db
+          .from("checklist_statuses")
+          .update({
+            is_hidden: true,
+            updated_by: nullIfEmpty(state.currentUserId),
+          })
+          .eq("id", existing.id);
+        throwIfError(updateRes);
+      }
+    }
+
+    await insertLog({
+      target_type: "체크리스트",
+      course_id: courseId,
+      round_id: roundId,
+      action_type: "숨김처리",
+      change_summary: `체크리스트 항목 삭제/숨김 처리`,
+    });
+
+    await loadAll();
+    renderChecklistEditList(courseId, roundId, scope, containerId);
+    renderChecklist(courseId, roundId, containerId || (scope === "round" ? "roundChecklistArea" : "courseChecklistArea"), scope);
+  } catch (error) {
+    alert("체크리스트 항목 삭제 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
+window.restoreChecklistItem = async function(courseId, roundIdRaw, itemId, scope, containerId) {
+  const roundId = roundIdRaw || null;
+
+  try {
+    const existing = state.checklistStatuses.find(
+      (s) =>
+        s.course_id === courseId &&
+        normalizeId(s.round_id) === normalizeId(roundId) &&
+        s.checklist_item_id === itemId
+    );
+
+    if (existing) {
+      const response = await db
+        .from("checklist_statuses")
+        .update({
+          is_hidden: false,
+          updated_by: nullIfEmpty(state.currentUserId),
+        })
+        .eq("id", existing.id);
+      throwIfError(response);
+    }
+
+    await insertLog({
+      target_type: "체크리스트",
+      course_id: courseId,
+      round_id: roundId,
+      action_type: "복원",
+      change_summary: `체크리스트 항목 복원`,
+    });
+
+    await loadAll();
+    renderChecklistEditList(courseId, roundId, scope, containerId);
+    renderChecklist(courseId, roundId, containerId || (scope === "round" ? "roundChecklistArea" : "courseChecklistArea"), scope);
+  } catch (error) {
+    alert("체크리스트 항목 복원 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
+function getNextChecklistSortOrder(courseId, roundId = null) {
+  const relatedStatuses = state.checklistStatuses.filter(
+    (s) => s.course_id === courseId && normalizeId(s.round_id) === normalizeId(roundId)
+  );
+
+  const maxStatusOrder = relatedStatuses.reduce(
+    (max, s) => Math.max(max, Number(s.sort_order) || 0),
+    0
+  );
+
+  const relatedItems = state.checklistItems.filter(
+    (item) =>
+      item.course_id === courseId &&
+      normalizeId(item.round_id) === normalizeId(roundId)
+  );
+
+  const maxItemOrder = relatedItems.reduce(
+    (max, item) => Math.max(max, Number(item.sort_order) || 0),
+    0
+  );
+
+  return Math.max(maxStatusOrder, maxItemOrder) + 1;
+}
+// ---------------------------------------------------------
+// 담당자 관리
+// ---------------------------------------------------------
+function renderMemberList() {
+  const container = document.getElementById("memberListArea");
+
+  if (!state.members.length) {
+    container.innerHTML = emptyBox("등록된 담당자가 없습니다.");
+    return;
+  }
+
+  container.innerHTML = state.members.map((member) => `
+    <div class="bg-white border rounded-xl p-3 grid grid-cols-1 md:grid-cols-7 gap-2 items-center">
+      <input class="input" id="member-name-${member.id}" value="${escapeHtml(member.name || "")}" />
+      <input class="input" id="member-position-${member.id}" value="${escapeHtml(member.position || "")}" />
+      <input class="input" id="member-department-${member.id}" value="${escapeHtml(member.department || "")}" />
+      <input class="input" id="member-email-${member.id}" value="${escapeHtml(member.email || "")}" />
+      <input class="input" id="member-sort-${member.id}" type="number" value="${member.sort_order ?? 999}" />
+
+      <button class="btn-secondary" onclick="updateMember('${member.id}')">
+        수정
+      </button>
+
+      <button class="btn-danger" onclick="hideMember('${member.id}')">
+        숨김
+      </button>
+    </div>
+  `).join("");
+}
+
+async function addMember() {
+  const name = document.getElementById("newMemberName").value.trim();
+
+  if (!name) {
+    alert("담당자 이름을 입력해주세요.");
+    return;
+  }
+
+  try {
+    const payload = {
+      name,
+      position: document.getElementById("newMemberPosition").value.trim() || null,
+      department: document.getElementById("newMemberDepartment").value.trim() || "HRD사업팀",
+      email: document.getElementById("newMemberEmail").value.trim() || null,
+      sort_order: toNumberOrNull(document.getElementById("newMemberSortOrder").value) || 999,
+      is_active: true,
+    };
+
+    const response = await db.from("members").insert(payload).select().single();
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "담당자",
+      action_type: "신규등록",
+      change_summary: `${payload.name} 담당자 신규 등록`,
+    });
+
+    document.getElementById("newMemberName").value = "";
+    document.getElementById("newMemberPosition").value = "";
+    document.getElementById("newMemberEmail").value = "";
+    document.getElementById("newMemberSortOrder").value = "";
+
+    await loadAll();
+    renderMemberList();
+
+    alert("담당자가 추가되었습니다.");
+  } catch (error) {
+    alert("담당자 추가 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+}
+
+window.updateMember = async function(memberId) {
+  try {
+    const payload = {
+      name: document.getElementById(`member-name-${memberId}`).value.trim(),
+      position: document.getElementById(`member-position-${memberId}`).value.trim() || null,
+      department: document.getElementById(`member-department-${memberId}`).value.trim() || "HRD사업팀",
+      email: document.getElementById(`member-email-${memberId}`).value.trim() || null,
+      sort_order: toNumberOrNull(document.getElementById(`member-sort-${memberId}`).value) || 999,
+    };
+
+    if (!payload.name) {
+      alert("이름은 비워둘 수 없습니다.");
+      return;
+    }
+
+    const response = await db
+      .from("members")
+      .update(payload)
+      .eq("id", memberId)
+      .select()
+      .single();
+
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "담당자",
+      action_type: "수정",
+      change_summary: `${payload.name} 담당자 정보 수정`,
+    });
+
+    await loadAll();
+    renderMemberList();
+
+    alert("담당자 정보가 수정되었습니다.");
+  } catch (error) {
+    alert("담당자 수정 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
+window.hideMember = async function(memberId) {
+  const member = state.members.find((m) => m.id === memberId);
+
+  if (!confirm(`${member?.name || "담당자"}님을 숨김 처리할까요?`)) {
+    return;
+  }
+
+  try {
+    const response = await db
+      .from("members")
+      .update({ is_active: false })
+      .eq("id", memberId);
+
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "담당자",
+      action_type: "숨김처리",
+      change_summary: `${member?.name || "담당자"} 숨김 처리`,
+    });
+
+    await loadAll();
+    renderMemberList();
+
+    alert("담당자가 숨김 처리되었습니다.");
+  } catch (error) {
+    alert("담당자 숨김 처리 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+};
+
+// ---------------------------------------------------------
+// 현장지원 태그
+// ---------------------------------------------------------
+function addSupportManagerTag() {
+  const select = document.getElementById("supportManagerSelect");
+  const memberId = select?.value;
+
+  if (!memberId) {
+    alert("현장지원 인원을 선택해주세요.");
+    return;
+  }
+
+  if (state.selectedSupportManagerIds.includes(memberId)) {
+    alert("이미 추가된 인원입니다.");
+    return;
+  }
+
+  state.selectedSupportManagerIds.push(memberId);
+  select.value = "";
+  renderSupportManagerTags();
+}
+
+function removeSupportManagerTag(memberId) {
+  state.selectedSupportManagerIds = state.selectedSupportManagerIds.filter((id) => id !== memberId);
+  renderSupportManagerTags();
+}
+
+function renderSupportManagerTags() {
+  const container = document.getElementById("supportManagerTags");
+  if (!container) return;
+
+  if (!state.selectedSupportManagerIds.length) {
+    container.innerHTML = `<div class="support-empty">현장지원 인원이 없습니다.</div>`;
+    return;
+  }
+
+  container.innerHTML = state.selectedSupportManagerIds.map((memberId) => {
+    const member = state.members.find((m) => m.id === memberId);
+    const name = member ? `${member.name}${member.position ? " / " + member.position : ""}` : "알 수 없음";
+
+    return `
+      <span class="support-tag">
+        <i class="fa-solid fa-person-circle-plus"></i>
+        ${escapeHtml(name)}
+        <button type="button" onclick="removeSupportManagerTag('${memberId}')">
+          ×
+        </button>
+      </span>
+    `;
+  }).join("");
+}
+
+window.removeSupportManagerTag = removeSupportManagerTag;
+
+
+// ---------------------------------------------------------
+// 차수별 운영 지원/현장운영자 태그
+// ---------------------------------------------------------
+function ensureRoundSatisfactionUI() {
+  const satisfactionInput = document.getElementById("satisfaction");
+  if (!satisfactionInput || document.getElementById("instructorSatisfaction")) return;
+
+  const anchor = satisfactionInput.closest(".form-field") || satisfactionInput.parentElement;
+  if (!anchor) return;
+
+  anchor.insertAdjacentHTML("afterend", `
+    <label class="form-field">
+      <span>강사 만족도</span>
+      <input id="instructorSatisfaction" class="input" type="number" step="0.01" min="0" max="5" placeholder="예: 4.80" />
+    </label>
+    <label class="form-field">
+      <span>운영 만족도</span>
+      <input id="operationSatisfaction" class="input" type="number" step="0.01" min="0" max="5" placeholder="예: 4.75" />
+    </label>
+  `);
+}
+
+function ensureCompleteSatisfactionUI() {
+  const satisfactionInput = document.getElementById("completeSatisfaction");
+  if (!satisfactionInput || document.getElementById("completeInstructorSatisfaction")) return;
+
+  const anchor = satisfactionInput.closest(".form-field") || satisfactionInput.parentElement;
+  if (!anchor) return;
+
+  anchor.insertAdjacentHTML("afterend", `
+    <label class="form-field">
+      <span>강사 만족도</span>
+      <input id="completeInstructorSatisfaction" class="input" type="number" step="0.01" min="0" max="5" placeholder="예: 4.80" />
+    </label>
+    <label class="form-field">
+      <span>운영 만족도</span>
+      <input id="completeOperationSatisfaction" class="input" type="number" step="0.01" min="0" max="5" placeholder="예: 4.75" />
+    </label>
+  `);
+}
+
+function ensureRoundFieldManagerUI() {
+  if (document.getElementById("roundFieldManagerSelect")) return;
+
+  const venueInput = document.getElementById("roundVenue");
+  const anchor = venueInput?.closest(".form-field") || venueInput?.parentElement;
+  if (!anchor) return;
+
+  anchor.insertAdjacentHTML("afterend", `
+    <label class="form-field round-field-manager-block">
+      <span class="field-label">차수별 운영 지원/현장운영자</span>
+      <div class="support-select-row">
+        <select id="roundFieldManagerSelect" class="input manager-field">
+          <option value="">차수별 운영 지원/현장운영자 선택</option>
+        </select>
+        <button type="button" class="btn-secondary" onclick="addRoundFieldManagerTag()">추가</button>
+      </div>
+      <div id="roundFieldManagerTags" class="support-tags"></div>
+    </label>
+  `);
+}
+
+function fillRoundFieldManagerSelect() {
+  const select = document.getElementById("roundFieldManagerSelect");
+  if (!select) return;
+
+  select.innerHTML = `<option value="">차수별 운영 지원/현장운영자 선택</option>`;
+  state.members.forEach((member) => {
+    const option = document.createElement("option");
+    option.value = member.id;
+    option.textContent = `${member.name}${member.position ? " (" + member.position + ")" : ""}`;
+    select.appendChild(option);
+  });
+}
+
+function addRoundFieldManagerTag() {
+  const select = document.getElementById("roundFieldManagerSelect");
+  const memberId = select?.value;
+
+  if (!memberId) {
+    alert("차수별 운영 지원/현장운영자를 선택해주세요.");
+    return;
+  }
+
+  if (state.selectedRoundFieldManagerIds.includes(memberId)) {
+    alert("이미 추가된 운영지원/현장입니다.");
+    return;
+  }
+
+  state.selectedRoundFieldManagerIds.push(memberId);
+  select.value = "";
+  renderRoundFieldManagerTags();
+}
+
+function removeRoundFieldManagerTag(memberId) {
+  state.selectedRoundFieldManagerIds = state.selectedRoundFieldManagerIds.filter((id) => id !== memberId);
+  renderRoundFieldManagerTags();
+}
+
+function renderRoundFieldManagerTags() {
+  const container = document.getElementById("roundFieldManagerTags");
+  if (!container) return;
+
+  if (!state.selectedRoundFieldManagerIds.length) {
+    container.innerHTML = `<div class="support-empty">차수별 운영 지원/현장운영자가 없습니다.</div>`;
+    return;
+  }
+
+  container.innerHTML = state.selectedRoundFieldManagerIds.map((memberId) => {
+    const member = state.members.find((m) => m.id === memberId);
+    const name = member ? `${member.name}${member.position ? " / " + member.position : ""}` : "알 수 없음";
+
+    return `
+      <span class="support-tag round-field-tag">
+        <i class="fa-solid fa-location-dot"></i>
+        ${escapeHtml(name)}
+        <button type="button" onclick="removeRoundFieldManagerTag('${memberId}')">×</button>
+      </span>
+    `;
+  }).join("");
+}
+
+window.addRoundFieldManagerTag = addRoundFieldManagerTag;
+window.removeRoundFieldManagerTag = removeRoundFieldManagerTag;
+
+// ---------------------------------------------------------
+// 데이터 업데이트 / 엑셀 다운로드
+// ---------------------------------------------------------
+async function updateData() {
+  try {
+    setSyncStatus("데이터 업데이트 중...");
+
+    const response = await db.rpc("refresh_round_and_course_statuses");
+    throwIfError(response);
+
+    await insertLog({
+      target_type: "설정",
+      action_type: "상태갱신",
+      change_summary: "데이터 업데이트 버튼을 통한 상태 갱신 및 최신 데이터 조회",
+    });
+
+    await loadAll();
+
+    setSyncStatus(`업데이트 완료 · ${formatNow()}`);
+    alert("데이터 업데이트가 완료되었습니다.");
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("업데이트 오류");
+    alert("데이터 업데이트 중 오류가 발생했습니다.\n\n" + error.message);
+  }
+}
+
+function downloadExcel() {
+  const courses = getFilteredCourses();
+
+  if (!courses.length) {
+    alert("다운로드할 데이터가 없습니다.");
+    return;
+  }
+
+  const rows = [];
+
+  rows.push([
+    "과정명",
+    "고객사",
+    "교육대상",
+    "과정시작일",
+    "과정종료일",
+    "연수지역",
+    "세부장소",
+    "사업담당자",
+    "운영PM",
+    "운영보조1",
+    "운영보조2",
+    "현장지원",
+    "과정상태",
+    "예상예산",
+    "차수",
+    "세부과정명",
+    "교육시작일",
+    "교육종료일",
+    "교육일정표기",
+    "차수상태",
+    "차수별 운영 지원/현장운영자",
+    "운영장소",
+    "운영시간",
+    "전반만족도",
+    "강사만족도",
+    "운영만족도",
+    "교육인원",
+    "차수비고",
+    "특이사항"
+  ]);
+
+  courses.forEach((course) => {
+    const courseRounds = state.rounds
+      .filter((round) => round.course_id === course.id)
+      .sort((a, b) => a.round_no - b.round_no);
+
+    if (!courseRounds.length) {
+      rows.push([
+        course.course_name,
+        course.client_name,
+        course.target_audience,
+        course.start_date_ymd,
+        course.end_date_ymd,
+        course.region,
+        course.location_detail,
+        getMemberName(course.business_manager_id),
+        getMemberName(course.main_manager_id),
+        getMemberName(course.sub_manager1_id),
+        "",
+        "",
+        STATUS_LABELS[course.status] || course.status,
+        course.expected_budget,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        course.notes
+      ]);
+    } else {
+      courseRounds.forEach((round) => {
+        rows.push([
+          course.course_name,
+          course.client_name,
+          course.target_audience,
+          course.start_date_ymd,
+          course.end_date_ymd,
+          course.region,
+          course.location_detail,
+          getMemberName(course.business_manager_id),
+          getMemberName(course.main_manager_id),
+          getMemberName(course.sub_manager1_id),
+          getMemberName(course.sub_manager2_id),
+          getSupportManagerNames(course.support_manager_ids),
+          STATUS_LABELS[course.status] || course.status,
+          course.expected_budget,
+          round.round_no,
+          round.round_name,
+          round.start_date_ymd,
+          round.end_date_ymd,
+          round.date_label,
+          STATUS_LABELS[round.status] || round.status,
+          getRoundFieldManagerNames(round.field_manager_ids),
+          round.venue,
+          round.operation_hours,
+          formatDecimal2ForInput(round.satisfaction),
+          formatDecimal2ForInput(round.instructor_satisfaction),
+          formatDecimal2ForInput(round.operation_satisfaction),
+          round.participant_count,
+          round.remarks,
+          course.notes
+        ]);
+      });
+    }
+  });
+
+  const csv = rows
+    .map((row) => row.map(csvEscape).join(","))
+    .join("\n");
+
+  const bom = "\uFEFF";
+  const blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8;" });
+
+  const today = new Date();
+  const fileName = `HRI_과정운영_데이터_${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}.csv`;
+
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+
+  link.setAttribute("href", url);
+  link.setAttribute("download", fileName);
+  link.style.display = "none";
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+}
+
+// ---------------------------------------------------------
+// 이력
+// ---------------------------------------------------------
+async function insertLog({ target_type, course_id = null, round_id = null, action_type, change_summary }) {
+  const response = await db.from("activity_logs").insert({
+    target_type,
+    course_id,
+    round_id,
+    action_type,
+    change_summary,
+    changed_by: nullIfEmpty(state.currentUserId),
+  });
+
+  if (response.error) {
+    console.warn("이력 저장 실패:", response.error.message);
+  }
+}
+
+// ---------------------------------------------------------
+// Helper
+// ---------------------------------------------------------
+function getCourseById(id) {
+  return state.courses.find((c) => c.id === id);
+}
+
+function getMemberName(id) {
+  if (!id) return "";
+  const member = state.members.find((m) => m.id === id);
+  if (!member) return "";
+  return `${member.name}${member.position ? " / " + member.position : ""}`;
+}
+
+function getMemberShortName(id) {
+  if (!id) return "";
+  const member = state.members.find((m) => m.id === id);
+  if (!member) return "";
+  return member.name.slice(-2);
+}
+
+function getSupportManagerNames(ids) {
+  if (!ids || !ids.length) return "";
+  return ids
+    .map((id) => getMemberName(id))
+    .filter(Boolean)
+    .join(", ");
+}
+
+function getRoundFieldManagerNames(ids) {
+  if (!ids || !ids.length) return "";
+  return ids
+    .map((id) => getMemberName(id))
+    .filter(Boolean)
+    .join(", ");
+}
+
+function getRoundFieldShortNames(ids, limit = 2) {
+  if (!ids || !ids.length) return "";
+
+  const names = ids
+    .map((id) => {
+      const member = state.members.find((m) => m.id === id);
+      return member?.name || "";
+    })
+    .filter(Boolean);
+
+  if (!names.length) return "";
+
+  const visible = names.slice(0, limit).join(", ");
+  const extraCount = names.length - limit;
+  return extraCount > 0 ? `${visible} +${extraCount}` : visible;
+}
+
+function getRoleLabel(course, memberId) {
+  if (course.business_manager_id === memberId) return "사업담당자";
+  if (course.main_manager_id === memberId) return "운영PM";
+  if (course.sub_manager1_id === memberId) return "운영PL";
+  return "담당자";
+}
+
+function getRoleChipClass(role) {
+  if (role === "사업담당자") return "role-business";
+  if (role === "운영PM") return "role-pm";
+  if (role === "운영PL") return "role-sub";
+  if (role === "운영지원" || role === "현장지원" || role === "현장운영") return "role-field";
+  return "role-sub";
+}
+
+function getRoleShortLabel(role) {
+  if (role === "사업담당자") return "사업";
+  if (role === "운영PM") return "PM";
+  if (role === "운영PL") return "PL";
+  if (role === "운영지원" || role === "현장지원" || role === "현장운영") return "지원";
+  return role;
+}
+
+function statusBadge(status) {
+  return `<span class="status-badge status-${status}">${STATUS_LABELS[status] || status}</span>`;
+}
+
+function statusText(status) {
+  return STATUS_LABELS[status] || status || "-";
+}
+
+function emptyBox(message) {
+  return `
+    <div class="bg-white rounded-xl border p-8 text-center text-slate-500">
+      ${escapeHtml(message)}
+    </div>
+  `;
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.add("hidden");
+}
+
+function setSyncStatus(text) {
+  document.getElementById("syncStatus").textContent = text;
+}
+
+function formatNow() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function formatDateTime(value) {
+  if (!value) return "-";
+  const d = new Date(value);
+  return d.toLocaleString("ko-KR");
+}
+
+function nullIfEmpty(value) {
+  return value ? value : null;
+}
+
+function normalizeId(value) {
+  return value || null;
+}
+
+function toNumberOrNull(value) {
+  if (value === "" || value === null || value === undefined) return null;
+  const num = Number(value);
+  return Number.isNaN(num) ? null : num;
+}
+
+function toDecimal2OrNull(value) {
+  if (value === "" || value === null || value === undefined) return null;
+  const num = Number(value);
+  if (Number.isNaN(num)) return null;
+  return Number(num.toFixed(2));
+}
+
+function formatDecimal2ForInput(value) {
+  if (value === "" || value === null || value === undefined) return "";
+  const num = Number(value);
+  return Number.isNaN(num) ? "" : num.toFixed(2);
+}
+
+function getValueIfExists(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : "";
+}
+
+function setValueIfExists(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value || "";
+}
+
+function getCourseCompletedDate(course) {
+  const courseRounds = state.rounds.filter((round) => round.course_id === course.id && round.status === "completed");
+  const latestRoundDate = courseRounds
+    .map((round) => round.end_date_ymd || round.start_date_ymd || round.completed_at || round.updated_at)
+    .filter(Boolean)
+    .sort()
+    .pop();
+
+  return latestRoundDate || course.end_date_ymd || course.updated_at || course.created_at;
+}
+
+function makeDateLabel(start, end) {
+  if (!start && !end) return "";
+  if (start && !end) return yymmddToShort(start);
+  if (!start && end) return yymmddToShort(end);
+  if (start === end) return yymmddToShort(start);
+  return `${yymmddToShort(start)}~${yymmddToShort(end)}`;
+}
+
+function yymmddToShort(value) {
+  if (!value || !/^\d{6}$/.test(value)) return "";
+  const month = Number(value.slice(2, 4));
+  const day = Number(value.slice(4, 6));
+  return `${month}/${day}`;
+}
+
+function getMonthFromYmd(value) {
+  if (!value || !/^\d{6}$/.test(value)) return null;
+  const month = Number(value.slice(2, 4));
+  if (month < 1 || month > 12) return null;
+  return month;
+}
+
+function getCourseStartMonth(course) {
+  return getMonthFromYmd(course.start_date_ymd) || course.start_month || null;
+}
+
+function getCourseEndMonth(course) {
+  return getMonthFromYmd(course.end_date_ymd) || course.end_month || null;
+}
+
+function makeMonthRangeLabel(course) {
+  const start = getCourseStartMonth(course);
+  const end = getCourseEndMonth(course);
+
+  if (!start && !end) return "";
+  if (start && !end) return `${start}월`;
+  if (!start && end) return `${end}월`;
+  if (start === end) return `${start}월`;
+  return `${start}월 ~ ${end}월`;
+}
+
+function getNextRoundNo(courseId) {
+  const courseRounds = state.rounds.filter((r) => r.course_id === courseId);
+  if (!courseRounds.length) return 1;
+  return Math.min(Math.max(...courseRounds.map((r) => r.round_no)) + 1, 15);
+}
+
+function getCourseChecklistCount(courseId) {
+  return state.checklistStatuses.filter((item) => {
+    return item.course_id === courseId && !item.round_id;
+  }).length;
+}
+
+function getCourseDoneChecklistCount(courseId) {
+  return state.checklistStatuses.filter((item) => {
+    return item.course_id === courseId && !item.round_id && item.is_done;
+  }).length;
+}
+
+function getLoadStatus(count) {
+  if (count >= 5) {
+    return {
+      label: `과다 (${count})`,
+      className: "load-high",
+    };
+  }
+
+  if (count >= 1) {
+    return {
+      label: `적정 (${count})`,
+      className: "load-normal",
+    };
+  }
+
+  return {
+    label: `정상 (0)`,
+    className: "load-low",
+  };
+}
+
+function makeCustomChecklistCode(scope) {
+  const prefix = scope === "round" ? "R-CUSTOM" : "P-CUSTOM";
+  const stamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).slice(2, 7).toUpperCase();
+  return `${prefix}-${stamp}-${random}`;
+}
+
+function csvEscape(value) {
+  if (value === null || value === undefined) return "";
+  const text = String(value).replaceAll('"', '""');
+  return `"${text}"`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
