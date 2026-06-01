@@ -83,7 +83,7 @@
 
       <div class="stat-card">
         <div>
-          <div class="stat-label">전체 차수</div>
+          <div class="stat-label">전체 세부 과정</div>
           <div id="statTotalRounds" class="stat-value">0</div>
         </div>
         <div class="stat-icon bg-indigo-50 text-indigo-700">
@@ -177,7 +177,7 @@
             월간 주간 프로젝트 보기
           </h2>
           <p class="text-xs text-slate-300 mt-1">
-            선택한 월에 진행되는 프로젝트와 차수를 일요일 시작 주간 단위로 확인합니다.
+            선택한 월에 진행되는 프로젝트와 세부 과정을 일요일 시작 주간 단위로 확인합니다.
           </p>
         </div>
         <button class="modal-close white" data-close-modal="weeklyLayerModal">&times;</button>
@@ -216,7 +216,7 @@
             신규 프로젝트 등록
           </h2>
           <p class="text-xs text-slate-300 mt-1">
-            과정 기본정보, 담당자, 차수, 체크리스트를 한 번에 관리합니다.
+            과정 기본정보, 담당자, 세부 과정, 체크리스트를 한 번에 관리합니다.
           </p>
         </div>
         <button class="modal-close white" data-close-modal="courseModal">&times;</button>
@@ -319,23 +319,23 @@
             </label>
           </div>
           <p class="text-xs text-slate-500 mt-3">
-            프로젝트 담당자는 사업담당자, 운영PM, 운영PL만 관리합니다. 운영 지원/현장운영자는 차수별 상세에서 지정합니다.
+            프로젝트 담당자는 사업담당자, 운영PM, 운영PL만 관리합니다. 운영 지원/현장운영자는 세부 과정 상세에서 지정합니다.
           </p>
         </section>
 
         <section id="courseInnerManageArea" class="form-section hidden">
           <h3 class="form-section-title">
             <i class="fa-solid fa-list-check"></i>
-            세부 과정 및 운영 차수 관리
+            세부 과정 관리
           </h3>
 
           <p class="text-xs text-slate-500 mb-4">
-            하나의 프로젝트 내에 포함되는 세부 과정과 차수를 추가하여 관리할 수 있습니다.
+            하나의 프로젝트 내에 포함되는 세부 과정을 번호 기준으로 추가하여 관리할 수 있습니다.
           </p>
 
           <div class="round-add-box">
             <input id="quickRoundName" class="input" placeholder="세부 과정명" />
-            <input id="quickRoundNo" class="input" type="number" min="1" max="15" placeholder="차수" />
+            <input id="quickRoundNo" class="input" type="number" min="1" placeholder="번호" />
             <input id="quickRoundStart" class="input" placeholder="시작일 YYMMDD" maxlength="6" />
             <input id="quickRoundEnd" class="input" placeholder="종료일 YYMMDD" maxlength="6" />
             <select id="quickRoundStatus" class="input"></select>
@@ -368,13 +368,13 @@
     </div>
   </div>
 
-  <!-- 차수 상세/수정 모달 -->
+  <!-- 세부 과정 상세/수정 모달 -->
   <div id="roundModal" class="modal hidden">
     <div class="modal-panel max-w-4xl">
       <div class="modal-header">
         <div>
-          <h2 id="roundModalTitle" class="text-lg font-black">차수 수정</h2>
-          <p class="text-xs text-slate-500 mt-1">차수별 일정, 상태, 비고, 체크리스트를 관리합니다.</p>
+          <h2 id="roundModalTitle" class="text-lg font-black">세부 과정 수정</h2>
+          <p class="text-xs text-slate-500 mt-1">세부 과정별 일정, 상태, 비고, 체크리스트를 관리합니다.</p>
         </div>
         <button class="modal-close" data-close-modal="roundModal">&times;</button>
       </div>
@@ -384,8 +384,8 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label class="form-field">
-            <span>차수 *</span>
-            <input id="roundNo" class="input" type="number" min="1" max="15" required />
+            <span>번호 *</span>
+            <input id="roundNo" class="input" type="number" min="1" required />
           </label>
 
           <label class="form-field">
@@ -424,10 +424,10 @@
           </label>
 
           <label class="form-field md:col-span-2 round-field-manager-block">
-            <span class="field-label">차수별 운영 지원/현장운영자</span>
+            <span class="field-label">세부 과정별 운영 지원/현장운영자</span>
             <div class="support-select-row">
               <select id="roundFieldManagerSelect" class="input manager-field">
-                <option value="">차수별 운영 지원/운영 지원/현장운영자 선택</option>
+                <option value="">세부 과정별 운영 지원/현장운영자 선택</option>
               </select>
               <button type="button" class="btn-secondary" onclick="addRoundFieldManagerTag()">
                 추가
@@ -438,7 +438,7 @@
         </div>
 
         <label class="form-field mt-4">
-          <span>차수별 메모</span>
+          <span>세부 과정별 메모</span>
           <textarea id="roundMemo" class="input min-h-[80px]"></textarea>
         </label>
 
@@ -475,7 +475,7 @@
 
         <div class="modal-footer">
           <button type="button" id="completeRoundBtn" class="btn-success">교육 완료</button>
-          <button type="button" id="hideRoundBtn" class="btn-danger hidden">차수 숨김</button>
+          <button type="button" id="hideRoundBtn" class="btn-danger hidden">세부 과정 숨김</button>
           <button type="button" class="btn-secondary" data-close-modal="roundModal">취소</button>
           <button type="submit" class="btn-primary">저장</button>
         </div>
@@ -545,7 +545,7 @@
         <div>
           <h2 class="text-lg font-black">체크리스트 수정하기</h2>
           <p id="checklistEditInfo" class="text-xs text-slate-500 mt-1">
-            이 프로젝트 또는 차수에만 적용되는 체크리스트를 수정합니다.
+            이 프로젝트 또는 세부 과정에만 적용되는 체크리스트를 수정합니다.
           </p>
         </div>
         <button class="modal-close" data-close-modal="checklistEditModal">&times;</button>
@@ -568,7 +568,7 @@
           </div>
 
           <p class="text-xs text-slate-500 mt-3">
-            ※ 추가한 항목은 현재 프로젝트 또는 현재 차수에만 반영됩니다.
+            ※ 추가한 항목은 현재 프로젝트 또는 현재 세부 과정에만 반영됩니다.
           </p>
         </section>
 
