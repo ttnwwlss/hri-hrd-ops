@@ -543,7 +543,7 @@ function renderCourseMiniCard(course) {
       <div class="round-preview">
         <div class="round-preview-title">
           <i class="fa-solid fa-layer-group"></i>
-          세부 차수 정보 (${rounds.length}개)
+          세부 과정 정보 (${rounds.length}개)
         </div>
 
         ${
@@ -553,19 +553,19 @@ function renderCourseMiniCard(course) {
               return `
                 <div class="round-preview-item round-preview-item-with-field">
                   <span class="round-dot dot-${round.status}"></span>
-                  <span class="round-preview-name">${round.round_no}차수 ${escapeHtml(round.round_name || "")}</span>
+                  <span class="round-preview-name">${round.round_no}. ${escapeHtml(round.round_name || "")}</span>
                   <span class="round-preview-date">${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</span>
                   ${round.venue ? `<span class="round-preview-venue">장소: ${escapeHtml(round.venue)}</span>` : ""}
                   ${fieldText ? `<span class="round-preview-field">현장: ${escapeHtml(fieldText)}</span>` : ""}
                 </div>
               `;
             }).join("")
-            : `<div class="small-muted">등록된 차수 없음</div>`
+            : `<div class="small-muted">등록된 세부 과정 없음</div>`
         }
 
         ${
           rounds.length > 3
-            ? `<div class="small-muted mt-1">외 ${rounds.length - 3}개 차수</div>`
+            ? `<div class="small-muted mt-1">외 ${rounds.length - 3}개 세부 과정</div>`
             : ""
         }
       </div>
@@ -720,7 +720,7 @@ function buildRRFieldRoundItems(memberId, courses, statuses) {
         course,
         round,
         roleLabel: "운영지원",
-        title: `${course.course_name || "프로젝트"} · ${round.round_no || ""}차 ${round.round_name || ""}`,
+        title: `${course.course_name || "프로젝트"} · ${round.round_no || ""}. ${round.round_name || ""}`,
         period: round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-",
         status: round.status || course.status,
         participants: Number(round.participant_count) || 0,
@@ -1170,7 +1170,7 @@ function collectTimelineEventsForMonth(month) {
           type: "round",
           courseId: course.id,
           roundId: round.id,
-          title: `${course.course_name} · ${round.round_no}차 ${round.round_name || ""}`,
+          title: `${course.course_name} · ${round.round_no}. ${round.round_name || ""}`,
           startDate,
           endDate,
           status: round.status || course.status,
@@ -1524,7 +1524,7 @@ function renderCourseModalRounds(courseId) {
       <table class="round-table">
         <thead>
           <tr>
-            <th>차수</th>
+            <th>번호</th>
             <th>세부 과정명</th>
             <th>일정</th>
             <th>상태</th>
@@ -1537,7 +1537,7 @@ function renderCourseModalRounds(courseId) {
         <tbody>
           ${rounds.map((round) => `
             <tr>
-              <td class="font-bold">${round.round_no}차</td>
+              <td class="font-bold">${round.round_no}</td>
               <td>${escapeHtml(round.round_name || "-")}</td>
               <td>${escapeHtml(round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || "-")}</td>
               <td>${statusBadge(round.status)}</td>
@@ -1584,9 +1584,12 @@ async function quickAddRound() {
   }
 
   try {
+    const requestedRoundNo = document.getElementById("quickRoundNo").value;
+    const nextRoundNo = requestedRoundNo ? Number(requestedRoundNo) : await getNextRoundNoFromDb(courseId);
+
     const payload = {
       course_id: courseId,
-      round_no: Number(document.getElementById("quickRoundNo").value || getNextRoundNo(courseId)),
+      round_no: nextRoundNo,
       round_name: document.getElementById("quickRoundName").value.trim() || null,
       start_date_ymd: start || null,
       end_date_ymd: end || null,
@@ -1604,7 +1607,7 @@ async function quickAddRound() {
       course_id: courseId,
       round_id: response.data.id,
       action_type: "신규등록",
-      change_summary: `${payload.round_no}차 신규 등록`,
+      change_summary: `${payload.round_no}번 신규 등록`,
     });
 
     document.getElementById("quickRoundName").value = "";
@@ -1629,7 +1632,7 @@ window.openRoundModalById = async function(roundId) {
   state.selectedRoundFieldManagerIds = Array.isArray(round.field_manager_ids) ? [...round.field_manager_ids] : [];
 
   document.getElementById("roundForm").reset();
-  document.getElementById("roundModalTitle").textContent = `${round.round_no}차 수정`;
+  document.getElementById("roundModalTitle").textContent = `${round.round_no}번 수정`;
 
   document.getElementById("roundId").value = round.id;
   document.getElementById("roundNo").value = round.round_no || "";
@@ -1717,7 +1720,7 @@ async function saveRound(event) {
       course_id: response.data.course_id,
       round_id: id,
       action_type: "수정",
-      change_summary: `${payload.round_no}차 수정`,
+      change_summary: `${payload.round_no}번 수정`,
     });
 
     await loadAll();
@@ -1737,10 +1740,10 @@ window.duplicateRound = async function(roundId) {
     return;
   }
 
-  if (!confirm(`${source.round_no}차를 복사하시겠습니까?\n운영 실적은 복사되지 않고, 장소/차수별 운영 지원·운영지원/현장/체크리스트 구성만 복사됩니다.`)) return;
+  if (!confirm(`${source.round_no}번 항목을 복사하시겠습니까?\n운영 실적은 복사되지 않고, 장소/차수별 운영 지원·운영지원/현장/체크리스트 구성만 복사됩니다.`)) return;
 
   try {
-    const nextNo = getNextRoundNo(source.course_id);
+    const nextNo = await getNextRoundNoFromDb(source.course_id);
     const payload = {
       course_id: source.course_id,
       round_no: nextNo,
@@ -1791,13 +1794,13 @@ window.duplicateRound = async function(roundId) {
       course_id: source.course_id,
       round_id: newRound.id,
       action_type: "복사",
-      change_summary: `${source.round_no}차를 ${nextNo}차로 복사`,
+      change_summary: `${source.round_no}번을 ${nextNo}번으로 복사`,
     });
 
     await loadAll();
     state.selectedCourseId = source.course_id;
     renderCourseModalRounds(source.course_id);
-    alert(`${nextNo}차가 복사되었습니다. 일정은 새 차수에서 수정해주세요.`);
+    alert(`${nextNo}번 항목이 복사되었습니다. 일정은 새 항목에서 수정해주세요.`);
   } catch (error) {
     console.error(error);
     alert("차수 복사 중 오류가 발생했습니다.\n\n" + error.message);
@@ -1853,7 +1856,7 @@ window.openCompleteModal = function(roundId) {
   document.getElementById("completeForm").reset();
   document.getElementById("completeRoundId").value = round.id;
   document.getElementById("completeRoundInfo").textContent =
-    `${round.round_no}차 · ${round.round_name || ""} · ${round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || ""}`;
+    `${round.round_no}. ${round.round_name || ""} · ${round.date_label || makeDateLabel(round.start_date_ymd, round.end_date_ymd) || ""}`;
 
   ensureCompleteSatisfactionUI();
 
@@ -1895,7 +1898,7 @@ async function submitCompleteRound(event) {
       course_id: round.course_id,
       round_id: roundId,
       action_type: "수정",
-      change_summary: `${round.round_no}차 교육 완료 및 실적 입력`,
+      change_summary: `${round.round_no}번 교육 완료 및 실적 입력`,
     });
 
     closeModal("completeModal");
@@ -2116,29 +2119,59 @@ window.toggleChecklist = async function(courseId, roundIdRaw, itemId, checked, c
 function getChecklistItemsByScope(scope, courseId = null, roundId = null) {
   const businessChecklistTitles = ["교육 제안/기획", "제안서 확정", "매출 인식"];
 
-  return state.checklistItems.filter((item) => {
-    if (scope === "course") {
-      // 프로젝트 체크리스트는 사업단 확인용 3개 항목만 사용합니다.
-      if (item.is_custom) return item.course_id === courseId && !item.round_id;
-      return (
-        (item.scope === "course" || item.scope === "business" || !item.scope) &&
-        !item.course_id &&
-        !item.round_id &&
-        businessChecklistTitles.includes(String(item.title || "").trim())
-      );
-    }
+  if (scope === "course") {
+    // 프로젝트 체크리스트는 사업단 확인용 3개 항목만 사용합니다.
+    // DB에 같은 기본 항목이 중복으로 남아 있어도 화면에는 제목 기준으로 1개만 표시합니다.
+    return businessChecklistTitles
+      .map((title, index) => {
+        const candidates = state.checklistItems
+          .filter((item) => {
+            const itemTitle = String(item.title || "").trim();
+            return (
+              itemTitle === title &&
+              !item.is_custom &&
+              !item.course_id &&
+              !item.round_id &&
+              (item.scope === "course" || item.scope === "business" || !item.scope)
+            );
+          })
+          .sort((a, b) => {
+            const orderA = Number(a.sort_order) || index + 1;
+            const orderB = Number(b.sort_order) || index + 1;
+            if (orderA !== orderB) return orderA - orderB;
+            return String(a.id || "").localeCompare(String(b.id || ""));
+          });
 
+        return candidates[0] || null;
+      })
+      .filter(Boolean);
+  }
+
+  const seenKeys = new Set();
+
+  return state.checklistItems.filter((item) => {
     const itemScopeMatched = item.scope === "round" || item.scope === "both";
     if (!itemScopeMatched) return false;
 
+    let include = false;
+
     // 차수별 체크리스트는 기존 운영 체크리스트를 그대로 사용합니다.
-    if (!item.is_custom && !item.course_id && !item.round_id) return true;
+    if (!item.is_custom && !item.course_id && !item.round_id) include = true;
 
     if (item.is_custom) {
-      return item.course_id === courseId && item.round_id === roundId;
+      include = item.course_id === courseId && item.round_id === roundId;
     }
 
-    return false;
+    if (!include) return false;
+
+    // 기본 항목 중복 표시 방지
+    if (!item.is_custom && !item.course_id && !item.round_id) {
+      const key = `${item.scope || ""}::${String(item.title || "").trim()}`;
+      if (seenKeys.has(key)) return false;
+      seenKeys.add(key);
+    }
+
+    return true;
   });
 }
 
@@ -2160,7 +2193,7 @@ window.openChecklistEditModal = async function(courseId, roundIdRaw, scope, cont
 
     document.getElementById("checklistEditInfo").textContent =
       scope === "round"
-        ? `${course?.course_name || ""} · ${round?.round_no || ""}차 ${round?.round_name || ""}에만 적용됩니다.`
+        ? `${course?.course_name || ""} · ${round?.round_no || ""}. ${round?.round_name || ""}에만 적용됩니다.`
         : `${course?.course_name || ""} 프로젝트에만 적용됩니다.`;
 
     await ensureChecklistStatuses(courseId, roundId, scope);
@@ -3204,18 +3237,47 @@ function makeMonthRangeLabel(course) {
 function getNextRoundNo(courseId) {
   const courseRounds = state.rounds.filter((r) => r.course_id === courseId);
   if (!courseRounds.length) return 1;
-  return Math.min(Math.max(...courseRounds.map((r) => r.round_no)) + 1, 15);
+
+  const numbers = courseRounds
+    .map((r) => Number(r.round_no))
+    .filter((n) => Number.isFinite(n) && n > 0);
+
+  if (!numbers.length) return 1;
+  return Math.max(...numbers) + 1;
+}
+
+async function getNextRoundNoFromDb(courseId) {
+  const response = await db
+    .from("rounds")
+    .select("round_no")
+    .eq("course_id", courseId)
+    .order("round_no", { ascending: true });
+
+  throwIfError(response);
+
+  const numbers = (response.data || [])
+    .map((r) => Number(r.round_no))
+    .filter((n) => Number.isFinite(n) && n > 0);
+
+  if (!numbers.length) return 1;
+  return Math.max(...numbers) + 1;
 }
 
 function getCourseChecklistCount(courseId) {
-  return state.checklistStatuses.filter((item) => {
-    return item.course_id === courseId && !item.round_id;
+  return getChecklistItemsByScope("course", courseId, null).filter((item) => {
+    const status = state.checklistStatuses.find(
+      (s) => s.course_id === courseId && !s.round_id && s.checklist_item_id === item.id
+    );
+    return !status?.is_hidden;
   }).length;
 }
 
 function getCourseDoneChecklistCount(courseId) {
-  return state.checklistStatuses.filter((item) => {
-    return item.course_id === courseId && !item.round_id && item.is_done;
+  return getChecklistItemsByScope("course", courseId, null).filter((item) => {
+    const status = state.checklistStatuses.find(
+      (s) => s.course_id === courseId && !s.round_id && s.checklist_item_id === item.id
+    );
+    return !!status?.is_done && !status?.is_hidden;
   }).length;
 }
 
